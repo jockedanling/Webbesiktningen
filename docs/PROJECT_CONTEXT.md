@@ -224,9 +224,9 @@ Skriftlig rapport: 1500–2000 ord, APA7. Ska täcka projektbeskrivning, avancer
 - [x] Idé vald och uppstartsmöte hållet (2026-10-13)
 - [x] Grupp anmäld till läraren
 - [x] Roller fördelade
-- [ ] Repo och solution-struktur uppsatt
+- [x] Repo och solution-struktur uppsatt
 - [ ] Kontraktet mergat till `main`
-- [ ] GitHub Actions uppsatt (bygg + test)
+- [x] GitHub Actions uppsatt (bygg + test)
 - [ ] Driftsättning till Azure App Service
 - [ ] Tunn konsolapp som kör en kontroll från början till slut
 
