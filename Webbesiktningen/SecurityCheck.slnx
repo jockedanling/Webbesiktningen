@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SecurityCheck.Cli/SecurityCheck.Cli.csproj" />
+    <Project Path="src/SecurityCheck.Core/SecurityCheck.Core.csproj" />
+    <Project Path="src/SecurityCheck.Web/SecurityCheck.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SecurityCheck.Tests/SecurityCheck.Tests.csproj" />
+  </Folder>
+</Solution>
