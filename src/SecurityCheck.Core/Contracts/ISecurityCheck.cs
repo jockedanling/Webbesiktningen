@@ -1,0 +1,1 @@
+namespace SecurityCheck.Core.Contracts;
