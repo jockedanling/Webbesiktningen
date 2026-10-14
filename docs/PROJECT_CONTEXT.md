@@ -6,7 +6,7 @@
 > Den är skriven för både människor och AI-assistenter. Ge den till din AI i början av varje session.
 > Uppdatera avsnittet **Nuläge** löpande. Beslut och motiveringar finns i [`DECISIONS.md`](DECISIONS.md).
 
-**Senast uppdaterad:** 2026-10-13
+**Senast uppdaterad:** 2026-10-14
 
 ---
 
@@ -28,10 +28,39 @@ En applikation där en småföretagare anger sin domän och får en begriplig s�
 |---|---|---|
 | Design pattern | **Strategy** – `ISecurityCheck`, `SecurityScanner` | **Decorator** – `TimeoutDecorator`, `ErrorHandlingDecorator`, `LoggingDecorator` |
 | Kontroller | TLS-certifikat, Säkerhetsheaders | E-postskydd (SPF/DMARC), HTTPS-omdirigering |
-| Övrigt | | Sätter upp repot |
+| Övrigt | `DomainValidator`, konsolappen | Sätter upp repot och CI, rate limiting |
 
-Blazor-gränssnittet och den skriftliga rapporten delas lika (vecka 3–4).
 Varje person implementerar sitt mönster själv tillsammans med AI och spelar in det live (individuell filmuppgift).
+
+### Fördelning efter kontraktet
+
+Kontraktet i `Contracts/` görs tillsammans. Därefter arbetar var och en på egen hand med sina delar, i ordningen nedan. Var och en skriver tester för sin egen kod i motsvarande mapp under `tests/SecurityCheck.Tests/`.
+
+**Erik**
+
+| # | Uppgift | Plats |
+|---|---|---|
+| 1 | `ISecurityCheck` (del av kontraktet, kräver att båda godkänner) | `Contracts/` |
+| 2 | `DomainValidator` med eget resultat och meddelande till användaren (TDD) | `Validation/` |
+| 3 | `SecurityScanner` – validerar först, kör sedan kontrollerna parallellt | `Scanning/` |
+| 4 | `TlsCertificateCheck` (minimum) | `Checks/` |
+| 5 | Tunn konsolapp som kör en skanning från början till slut | `SecurityCheck.Cli` |
+| 6 | `SecurityHeadersCheck` (mål) | `Checks/` |
+
+**Joakim**
+
+| # | Uppgift | Plats |
+|---|---|---|
+| 1 | `ErrorHandlingDecorator` | `Decorators/` |
+| 2 | `TimeoutDecorator` | `Decorators/` |
+| 3 | `LoggingDecorator` | `Decorators/` |
+| 4 | `EmailProtectionCheck` – SPF/DMARC (minimum) | `Checks/` |
+| 5 | `HttpsRedirectCheck` (mål) | `Checks/` |
+| 6 | Rate limiting i koden som startar en skanning (se avsnitt 8) | `SecurityCheck.Web` |
+
+**Tillsammans:** kontraktet, att koppla ihop decorators runt kontrollerna, Blazor-gränssnittet (vecka 3–4), driftsättning till Azure, README och den skriftliga rapporten.
+
+Ändra inte i den andras filer. Behövs en ändring där, ta det med ägaren eller föreslå den i en PR som ägaren granskar.
 
 ---
 
@@ -104,6 +133,7 @@ ISecurityCheck check = new LoggingDecorator(
 ## 6. Kontraktet
 
 Detta är det gemensamma interfacet som båda kodar mot. **Ändringar kräver att båda godkänner i en PR.**
+`ISecurityCheck` skrivs av Erik som en del av Strategy-mönstret (se D-023); övriga typer finns i `Contracts/`.
 
 ```csharp
 public interface ISecurityCheck
@@ -130,18 +160,35 @@ public sealed record Finding(
     string Explanation,     // vad det betyder, på klarspråk
     string Recommendation); // vad företagaren ska göra
 
-public sealed record CheckResult(
-    string CheckName,
-    CheckStatus Status,
-    IReadOnlyList<Finding> Findings,
-    FailureReason? FailureReason = null);
+// Skapas bara via fabriksmetoderna, så att Status och FailureReason alltid stämmer överens (D-018)
+public sealed record CheckResult
+{
+    public string CheckName { get; }
+    public CheckStatus Status { get; }
+    public IReadOnlyList<Finding> Findings { get; }
+    public FailureReason? FailureReason { get; }
+
+    private CheckResult(...) { ... }
+
+    public static CheckResult Completed(string checkName, IReadOnlyList<Finding> findings); // FailureReason = null
+    public static CheckResult Failed(string checkName, FailureReason reason);               // Findings = tom lista
+}
+```
+
+Användning:
+
+```csharp
+return CheckResult.Completed(Name, findings);
+return CheckResult.Failed(Name, FailureReason.Timeout);
 ```
 
 ### Felhantering
 
-- **Kontrollen hittade ett problem** → `Status = Completed` + ett eller flera `Finding`.
-- **Kontrollen kunde inte genomföras** → `Status = Failed` + `FailureReason`. Användaren ser ett vänligt meddelande, t.ex. "Kontrollen kunde inte genomföras just nu (webbplatsen svarade inte). Försök igen om en stund."
-- `ErrorHandlingDecorator` fångar undantag och gör om dem till `Failed`-resultat, så att enskilda kontroller inte behöver egen `try/catch`.
+- **Kontrollen hittade ett problem** → `CheckResult.Completed(...)` med ett eller flera `Finding`.
+- **Kontrollen hittade inga problem** → `CheckResult.Completed(...)` med en tom lista.
+- **Kontrollen kunde inte genomföras** → `CheckResult.Failed(...)` med en `FailureReason`. Användaren ser ett vänligt meddelande, t.ex. "Kontrollen kunde inte genomföras just nu (webbplatsen svarade inte). Försök igen om en stund."
+- `Completed` betyder att kontrollen gick att genomföra, **inte** att sidan är säker. Ett `Completed`-resultat kan innehålla fynd med `Severity.High`.
+- `ErrorHandlingDecorator` fångar undantag och gör om dem till `CheckResult.Failed(...)` med `FailureReason.Unexpected`, så att enskilda kontroller inte behöver egen `try/catch`.
 - **Tekniska detaljer (exception-meddelanden, stack traces) visas aldrig för användaren.** De loggas för utvecklarna.
 
 ---
@@ -235,7 +282,7 @@ Skriftlig rapport: 1500–2000 ord, APA7. Ska täcka projektbeskrivning, avancer
 ## 12. Instruktioner till AI-assistenter
 
 - Följ arkitekturen och kontraktet ovan. Föreslå inte ändringar i `Contracts/` utan att flagga det tydligt.
-- Koden skrivs på engelska (namn, kommentarer). Förklaringar till oss får vara på svenska.
+- Koden skrivs på engelska (namn) men kommentarer kan vara på svenska. Förklaringar till oss får vara på svenska.
 - Förklara *varför* ett förslag passar, och nämn nackdelar eller alternativ. Vi ska kunna resonera kritiskt kring förslagen i våra filmer.
 - Respektera säkerhetsreglerna i avsnitt 8.
 - Håll förslag små och i linje med Definition of Done (inklusive tester).
