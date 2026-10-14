@@ -112,8 +112,52 @@
 **Varför:** Metaforen med bilbesiktning förklarar appen direkt för målgruppen: en regelbunden kontroll som ger anmärkningar och åtgärder.
 **Var:** Gränssnittet, `README.md`.
 
+## D-017: CI på Linux med varningar som fel, Dependabot och skyddad main
+**Datum:** 2026-10-13 · **Beslutat av:** Joakim, granskat av Erik
+**Vad:** GitHub Actions kör restore, build (`Release`, `-warnaserror`) och test som separata steg vid varje PR och push till `main`, på `ubuntu-latest` med minsta möjliga behörighet (`contents: read`). Dependabot kontrollerar NuGet-paket och GitHub Actions varje vecka; minor- och patch-uppdateringar grupperas i en PR. `main` är skyddad: PR med ett godkännande och grön `build-and-test` krävs, och ingen kan gå förbi reglerna.
+**Varför:** Gör Definition of Done (D-008) automatisk istället för beroende av att någon minns att kontrollera. Linux är snabbast och skiljer på stora och små bokstäver i sökvägar, så sådana fel upptäcks tidigt. Separata steg visar direkt vad som gick fel. Gratis eftersom repot är publikt. Branch protection gör regeln "aldrig direkt till `main`" teknisk istället för en överenskommelse.
+**Var:** `.github/workflows/ci.yml`, `.github/dependabot.yml`, repoinställningar på GitHub.
+
+## D-018: Fabriksmetoder i CheckResult
+**Datum:** 2026-10-14 · **Beslutat av:** Erik, Joakim
+**Vad:** `CheckResult` har en privat konstruktor och skapas bara via `CheckResult.Completed(checkName, findings)` och `CheckResult.Failed(checkName, reason)`. Egenskaperna har bara `get` (inte `init`). Ersätter den positionella recorden i D-005; övriga delar av D-005 gäller.
+**Varför:** `Status` och `FailureReason` måste stämma överens. Med en vanlig konstruktor går det att skapa motsägelsefulla resultat, t.ex. `Completed` med en felorsak eller `Failed` utan orsak. Fabriksmetoderna gör sådana resultat omöjliga att skapa, och `get` utan `init` hindrar att skyddet kringgås med `with`. Bortvalt: positionell record (för lätt att skapa ogiltiga resultat) och att härleda `Status` från `FailureReason` (mindre tydligt för läsaren). `Finding` behåller positionell form eftersom den inte har några ogiltiga kombinationer.
+**Var:** `Contracts/CheckResult.cs`.
+
+## D-019: Testkonventioner och jämförelse fält för fält
+**Datum:** 2026-10-14 · **Beslutat av:** Erik, Joakim
+**Vad:** Testnamn följer `Metod_Scenario_FörväntatResultat` i PascalCase. Varje test följer Arrange–Act–Assert och testar ett scenario. Samma test med olika indata skrivs som `[Theory]` med `[InlineData]`. Testmappar speglar mapparna i `src`. `CheckResult` jämförs fält för fält, inte som helhet.
+**Varför:** Enhetliga tester är lättare att läsa och granska, och ett tydligt namn visar vad som gick fel direkt i CI-loggen. Records jämför `IReadOnlyList<Finding>` som referens, så två resultat med samma fynd i olika listor blir inte lika med `Assert.Equal`. Listor i sig går att jämföra med `Assert.Equal`, eftersom xUnit jämför samlingar element för element.
+**Var:** `tests/SecurityCheck.Tests/`.
+
+## D-020: FailureReason.InvalidInput behålls som extra skydd
+**Datum:** 2026-10-14 · **Beslutat av:** Erik, Joakim
+**Vad:** `InvalidInput` finns kvar i `FailureReason` trots att `DomainValidator` validerar domänen innan kontrollerna körs (D-015).
+**Varför:** En kontroll kan anropas utan att gå via scannern, t.ex. i tester eller om ny kod läggs till senare. Då ska den ändå kunna svara att indata var ogiltig istället för att krascha. Bortvalt: att ta bort värdet, vilket hade gjort kontraktet mindre men förutsatt att valideringen alltid körs först.
+**Var:** `Contracts/FailureReason.cs`, `Checks/`.
+
+## D-021: DomainValidator returnerar ett eget resultat med meddelande
+**Datum:** 2026-10-14 · **Beslutat av:** Erik, Joakim
+**Vad:** `DomainValidator` returnerar ett eget resultat som anger om domänen godkändes och, om inte, ett meddelande som kan visas för användaren. Kompletterar D-014 och D-015.
+**Varför:** En nekad domän är ett förväntat utfall, inte ett fel, så undantag passar inte. En `bool` säger inte varför domänen nekades, och användaren behöver ett begripligt meddelande på klarspråk.
+**Var:** `Validation/` (Erik).
+
+## D-022: Kommentarer i koden får vara på svenska
+**Datum:** 2026-10-14 · **Beslutat av:** Erik, Joakim
+**Vad:** Namn på klasser, metoder, variabler och namnrymder skrivs på engelska. Kommentarer, inklusive `///`-dokumentation, får vara på svenska. Ändrar regeln i `PROJECT_CONTEXT.md` avsnitt 12.
+**Varför:** _(fyll i)_
+**Var:** Hela koden, `PROJECT_CONTEXT.md` avsnitt 12.
+
+## D-023: Arbetsfördelning efter kontraktet
+**Datum:** 2026-10-14 · **Beslutat av:** Erik, Joakim
+**Vad:** Kontraktet i `Contracts/` görs tillsammans, utom `ISecurityCheck` som Erik skriver i början av sin inspelning av Strategy-mönstret och lägger i en egen liten PR. Därefter arbetar var och en på egen hand enligt fördelningen i `PROJECT_CONTEXT.md` avsnitt 2 fram till Blazor-gränssnittet. Ingen ändrar i den andras filer utan att ägaren granskar.
+**Varför:** Varje person ska spela in sitt eget mönster, och interfacet är grunden i Strategy-mönstret. En liten PR med bara interfacet gör att Joakim snabbt kan börja på sina decorators, som bygger på det. Tydligt ägarskap minskar merge-konflikter och visar vem som gjort vad.
+**Var:** `PROJECT_CONTEXT.md` avsnitt 2, `Contracts/ISecurityCheck.cs`.
+
 ---
 
 ## Öppna frågor
 
 - **Fast veckomöte:** ska vi ha en fast avstämning i veckan utöver den löpande kontakten?
+- **Var kopplas decorators ihop med kontrollerna?** Förslag: i `Program.cs` i Cli och Web, så att `SecurityScanner` inte behöver känna till decorators.
+- **Vad returnerar `SecurityScanner` till gränssnittet?** En lista med `CheckResult` eller en egen typ (t.ex. `ScanReport`) som också kan bära valideringsmeddelandet från `DomainValidator` (D-021)? Behöver bestämmas innan Blazor-vyn.
