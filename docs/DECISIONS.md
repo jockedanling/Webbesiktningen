@@ -154,6 +154,42 @@
 **Varför:** Varje person ska spela in sitt eget mönster, och interfacet är grunden i Strategy-mönstret. En liten PR med bara interfacet gör att Joakim snabbt kan börja på sina decorators, som bygger på det. Tydligt ägarskap minskar merge-konflikter och visar vem som gjort vad.
 **Var:** `PROJECT_CONTEXT.md` avsnitt 2, `Contracts/ISecurityCheck.cs`.
 
+## D-024: Förväntade fel hanteras i kontrollerna, oväntade i ErrorHandlingDecorator
+**Datum:** 2026-10-17 · **Beslutat av:** Joakim _(väntar på Erik)_
+**Vad:** Varje kontroll fångar de fel den förväntar sig och returnerar rätt `FailureReason`, t.ex. `Unreachable` när sajten inte svarar. Fel som egentligen är fynd, t.ex. ett ogiltigt TLS-certifikat, blir `Completed` med ett fynd. `ErrorHandlingDecorator` fångar alla övriga undantag och gör om dem till `Failed(Unexpected)`. Ersätter formuleringen i `PROJECT_CONTEXT.md` avsnitt 6 om att kontrollerna inte behöver egen `try/catch`.
+**Varför:** Samma undantag betyder olika saker i olika kontroller. En `HttpRequestException` från TLS-kontrollen kan betyda ett trasigt certifikat, alltså ett säkerhetsproblem, och skulle döljas om decoratorn gjorde om den till `Unreachable`. Bara kontrollen vet vad felet betyder där det uppstod. Bortvalt: att låta decoratorn översätta undantagstyper till orsaker, vilket kräver att den känner till varje kontroll inifrån och måste ändras för varje ny kontroll (bryter mot Open/Closed).
+**Var:** `Checks/`, `Decorators/ErrorHandlingDecorator.cs`, `PROJECT_CONTEXT.md` avsnitt 6.
+
+## D-025: Avbrott från anroparen kastas vidare
+**Datum:** 2026-10-17 · **Beslutat av:** Joakim _(väntar på Erik)_
+**Vad:** En dekorerad kontroll kastar aldrig undantag, utom `OperationCanceledException` när anroparens `ct` är avbruten. `ErrorHandlingDecorator` släpper bara igenom `OperationCanceledException` om `ct.IsCancellationRequested` är sant. Andra avbrott, t.ex. när `HttpClient` får sin egen timeout, blir `Failed`. Dokumenteras i XML-kommentaren i `ISecurityCheck`. `SecurityScanner` hanterar att `Task.WhenAll` kastar vid avbrott.
+**Varför:** Ett avbrott är inget resultat av kontrollen, och användaren som avbryter vill inte få en rapport full av misslyckade kontroller. Att bara titta på tokenen och inte på undantagets typ gör att en långsam sajt inte kraschar hela skanningen, eftersom `HttpClient` kastar `TaskCanceledException` vid sin egen timeout fast anroparen inte avbrutit. Bortvalt: att göra avbrott till `Failed`, och att släppa igenom alla `OperationCanceledException`.
+**Var:** `Contracts/ISecurityCheck.cs`, `Decorators/ErrorHandlingDecorator.cs`, `Scanning/SecurityScanner.cs`.
+
+## D-026: Decorators kopplas ihop i Program.cs
+**Datum:** 2026-10-17 · **Beslutat av:** Joakim
+**Vad:** Decorators kopplas ihop med kontrollerna i `Program.cs` i Cli och Web, i ordningen `Logging(ErrorHandling(Timeout(check)))` enligt `PROJECT_CONTEXT.md` avsnitt 5. Besvarar den öppna frågan om var decorators kopplas ihop.
+**Varför:** `SecurityScanner` behöver då bara känna till `ISecurityCheck` och inte vilka decorators som finns, vilket minskar beroendet mellan Strategy- och Decorator-delen.
+**Var:** `SecurityCheck.Cli/Program.cs`, `SecurityCheck.Web/Program.cs`.
+
+## D-027: TimeoutDecorator returnerar Failed(Timeout)
+**Datum:** 2026-10-17 · **Beslutat av:** Joakim
+**Vad:** När tidsgränsen löper ut returnerar `TimeoutDecorator` `Failed(Timeout)` istället för att kasta. Om det istället är anroparen som avbryter kastas `OperationCanceledException` vidare enligt D-025.
+**Varför:** `TimeoutDecorator` ligger innanför `ErrorHandlingDecorator`. Om den kastade skulle varje timeout bli `Failed(Unexpected)`, alltså fel orsak. Bortvalt: att kasta och låta `ErrorHandlingDecorator` översätta, vilket bryter mot D-024.
+**Var:** `Decorators/TimeoutDecorator.cs`.
+
+## D-028: ErrorHandlingDecorator loggar undantaget
+**Datum:** 2026-10-17 · **Beslutat av:** Joakim
+**Vad:** `ErrorHandlingDecorator` tar emot en `ILogger` och loggar hela undantaget (inklusive stack trace och inre undantag) tillsammans med kontrollens namn och domänen, innan den returnerar `Failed(Unexpected)`. Core får beroendet `Microsoft.Extensions.Logging.Abstractions`. Loggningen testas med `FakeLogger` från `Microsoft.Extensions.Diagnostics.Testing`.
+**Varför:** Den som sväljer ett undantag ansvarar för att logga det. `LoggingDecorator` ligger utanför `ErrorHandlingDecorator` och ser bara det färdiga resultatet, så undantaget skulle annars försvinna och buggen bli omöjlig att hitta. Domänen är offentlig och behövs för att återskapa felet. Tekniska detaljer visas aldrig för användaren (D-006). `FakeLogger` används eftersom `ILogger` är svår att verifiera med NSubstitute: `LogError` är en extension method och `Log<TState>` är generisk. Bortvalt: att byta ordning så att `LoggingDecorator` ser undantaget.
+**Var:** `Decorators/ErrorHandlingDecorator.cs`, `SecurityCheck.Core.csproj`, `SecurityCheck.Tests.csproj`.
+
+## D-029: Decorators implementerar ISecurityCheck direkt
+**Datum:** 2026-10-17 · **Beslutat av:** Joakim
+**Vad:** Varje decorator implementerar `ISecurityCheck` direkt och håller en egen referens till den inre kontrollen. Ingen abstrakt basklass.
+**Varför:** Basklassen skulle bara samla referensen till den inre kontrollen och Name, vilket är ett par rader per decorator och inte motiverar ett extra arvslager. Utan basklass går varje decorator att läsa för sig i en fil. Mönstrets kärna är kvar: varje decorator implementerar samma gränssnitt som det den slår in, så de kan staplas utan att SecurityScanner märker något. GoF beskriver basklassen som valfri främst när man bara lägger till ett ansvar; vi har tre, så valet är en avvägning. Omprövas om fler decorators tillkommer (t.ex. RetryDecorator och CachingDecorator i steg 2). Bortvalt: en abstrakt SecurityCheckDecorator enligt GoF:s beskrivning, som hade samlat referensen och Name på ett ställe.  Bortvalt: en abstrakt `SecurityCheckDecorator` enligt GoF:s beskrivning, som hade samlat referensen och `Name` på ett ställe.
+**Var:** `Decorators/`.
+
 ---
 
 ## Öppna frågor
