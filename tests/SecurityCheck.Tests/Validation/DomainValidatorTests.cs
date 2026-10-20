@@ -22,6 +22,7 @@ public class DomainValidatorTests
     [InlineData("example.com")]
     [InlineData("www.example.se")]
     [InlineData("Example.COM")]
+    [InlineData("åkeri.se")]
     public async Task ValidateAsync_ValidDomain_ReturnsValid(string domain)
     {
         // Act
