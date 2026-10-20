@@ -72,9 +72,9 @@ public class ErrorHandlingDecoratorTests
     public async Task RunAsync_InnerCancelsWithoutCallerCancel_ReturnsFailedUnexpected()
     {
         // Arrange
-_inner.RunAsync(Domain, Arg.Any<CancellationToken>())
-.Returns(Task.FromException<CheckResult>(new TaskCanceledException("HttpClient-timeout")));
-var decorator = new ErrorHandlingDecorator(_inner, _logger);
+        _inner.RunAsync(Domain, Arg.Any<CancellationToken>())
+        .Returns(Task.FromException<CheckResult>(new TaskCanceledException("HttpClient-timeout")));
+        var decorator = new ErrorHandlingDecorator(_inner, _logger);
         // Act
         var result = await decorator.RunAsync(Domain, CancellationToken.None);
 
