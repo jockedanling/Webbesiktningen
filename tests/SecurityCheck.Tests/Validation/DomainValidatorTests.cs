@@ -122,4 +122,95 @@ public class DomainValidatorTests
         // Assert
         await _dns.DidNotReceive().ResolveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
+
+    // Steg 2: DNS. En giltig domän kan peka på en intern adress, och då ska den nekas (SSRF-skydd)
+    [Theory]
+    [InlineData("0.0.0.0")]               // "den här datorn"
+    [InlineData("10.0.0.1")]              // privat nätverk
+    [InlineData("100.64.0.1")]            // operatörens delade nät (CGNAT)
+    [InlineData("127.0.0.1")]             // loopback
+    [InlineData("169.254.169.254")]       // link-local, molnets metadatatjänst
+    [InlineData("172.16.0.1")]            // privat nätverk
+    [InlineData("192.168.1.1")]           // privat nätverk
+    [InlineData("224.0.0.1")]             // multicast
+    [InlineData("255.255.255.255")]       // broadcast
+    [InlineData("::")]                    // ospecificerad
+    [InlineData("::1")]                   // loopback
+    [InlineData("fc00::1")]               // privat nätverk (unique local)
+    [InlineData("fe80::1")]               // link-local
+    [InlineData("ff02::1")]               // multicast
+    [InlineData("::ffff:127.0.0.1")]      // IPv4-adress förklädd som IPv6
+    [InlineData("::ffff:10.0.0.1")]       // IPv4-adress förklädd som IPv6
+    public async Task ValidateAsync_ResolvesToNonPublicAddress_ReturnsInvalid(string address)
+    {
+        // Arrange
+        ResolveExampleComTo(address);
+
+        // Act
+        var result = await _validator.ValidateAsync("example.com", CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_OneOfSeveralAddressesIsNonPublic_ReturnsInvalid()
+    {
+        // Arrange
+        // Annars kan en angripare blanda in en intern adress bland publika
+        ResolveExampleComTo("93.184.215.14", "10.0.0.1");
+
+        // Act
+        var result = await _validator.ValidateAsync("example.com", CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ResolvesToPublicAddresses_ReturnsValid()
+    {
+        // Arrange
+        ResolveExampleComTo("93.184.215.14", "2606:2800:21f:cb07:6820:80da:af6b:8b2c");
+
+        // Act
+        var result = await _validator.ValidateAsync("example.com", CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_DomainNotFound_ReturnsInvalid()
+    {
+        // Arrange
+        // IDnsResolver returnerar en tom lista när domänen inte finns
+        ResolveExampleComTo();
+
+        // Act
+        var result = await _validator.ValidateAsync("example.com", CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ValidDomain_PassesTrimmedDomainAndTokenToResolver()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        await _validator.ValidateAsync("  example.com  ", cts.Token);
+
+        // Assert
+        await _dns.Received(1).ResolveAsync("example.com", cts.Token);
+    }
+
+    // Ersätter standardsvaret från konstruktorn för just example.com
+    private void ResolveExampleComTo(params string[] addresses)
+    {
+        _dns.ResolveAsync("example.com", Arg.Any<CancellationToken>())
+            .Returns([.. addresses.Select(IPAddress.Parse)]);
+    }
 }

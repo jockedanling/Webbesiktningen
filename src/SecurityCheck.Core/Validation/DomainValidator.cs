@@ -1,11 +1,12 @@
 using System.Globalization;
 using System.Net;
+using System.Net.Sockets;
 
 namespace SecurityCheck.Core.Validation;
 
 /// <summary>
 /// Kontrollerar att en domän är säker att skanna (SSRF-skydd, D-014, D-015).
-/// Steg 1: kontrollerar bara formatet. Steg 2 lägger till DNS-uppslagning.
+/// Kontrollerar först formatet och slår sedan upp domänen i DNS. Alla adresser måste vara publika.
 /// </summary>
 public sealed class DomainValidator : IDomainValidator
 {
@@ -17,12 +18,67 @@ public sealed class DomainValidator : IDomainValidator
         _dns = dns;
     }
 
-    public Task<DomainValidationResult> ValidateAsync(string domain, CancellationToken ct)
+    public async Task<DomainValidationResult> ValidateAsync(string domain, CancellationToken ct)
     {
-        // Inget await än, därför Task.FromResult. Blir async i steg 2 när DNS slås upp.
-        return Task.FromResult(ValidateFormat(domain));
+        var formatResult = ValidateFormat(domain);
+        if (!formatResult.IsValid)
+        {
+            return formatResult;
+        }
+
+        // Slå upp ASCII-formen, så att t.ex. "åkeri.se" fungerar på alla plattformar
+        var host = new IdnMapping().GetAscii(domain.Trim());
+        var addresses = await _dns.ResolveAsync(host, ct);
+
+        if (addresses.Length == 0)
+        {
+            return DomainValidationResult.Invalid("Vi hittade inte domänen. Kontrollera stavningen.");
+        }
+
+        // Alla adresser måste vara publika, annars kan en intern adress blandas in bland publika
+        if (!addresses.All(IsPublic))
+        {
+            return DomainValidationResult.Invalid("Domänen är inte tillåten.");
+        }
+
+        return DomainValidationResult.Valid();
     }
 
+    private static bool IsPublic(IPAddress address)
+    {
+        // "::ffff:127.0.0.1" är en IPv4-adress förklädd som IPv6
+        if (address.IsIPv4MappedToIPv6)
+        {
+            address = address.MapToIPv4();
+        }
+
+        if (address.AddressFamily == AddressFamily.InterNetwork)
+        {
+            var b = address.GetAddressBytes();
+            return !(b[0] == 0                                  // "den här datorn"
+                || b[0] == 10                                   // privat
+                || b[0] == 127                                  // loopback
+                || (b[0] == 100 && b[1] >= 64 && b[1] <= 127)   // CGNAT
+                || (b[0] == 169 && b[1] == 254)                 // link-local, metadatatjänst
+                || (b[0] == 172 && b[1] >= 16 && b[1] <= 31)    // privat
+                || (b[0] == 192 && b[1] == 168)                 // privat
+                || b[0] >= 224);                                // multicast, reserverat, broadcast
+        }
+
+        if (address.AddressFamily == AddressFamily.InterNetworkV6)
+        {
+            return !(address.Equals(IPAddress.IPv6Any)
+                || address.Equals(IPAddress.IPv6Loopback)
+                || address.IsIPv6LinkLocal
+                || address.IsIPv6SiteLocal
+                || address.IsIPv6UniqueLocal
+                || address.IsIPv6Multicast);
+        }
+
+        // Okänd adresstyp: neka hellre än att släppa igenom
+        return false;
+    }
+    
     private static DomainValidationResult ValidateFormat(string? domain)
     {
         if (string.IsNullOrWhiteSpace(domain))
