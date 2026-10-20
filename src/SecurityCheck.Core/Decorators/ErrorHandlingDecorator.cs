@@ -41,6 +41,6 @@ public sealed partial class ErrorHandlingDecorator : ISecurityCheck
 
 
     [LoggerMessage(Level = LogLevel.Error,
-    Message = "Kontrollen {Checkname} kastade ett oväntat undantag för {Domain}")]
+    Message = "Kontrollen {CheckName} kastade ett oväntat undantag för {Domain}")]
     private static partial void LogUnexpectedException(ILogger logger, Exception exception, string checkName, string domain);
 }
