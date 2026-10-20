@@ -155,13 +155,13 @@
 **Var:** `PROJECT_CONTEXT.md` avsnitt 2, `Contracts/ISecurityCheck.cs`.
 
 ## D-024: Förväntade fel hanteras i kontrollerna, oväntade i ErrorHandlingDecorator
-**Datum:** 2026-10-17 · **Beslutat av:** Joakim _(väntar på Erik)_
+**Datum:** 2026-10-17 · **Beslutat av:** Joakim, Erik
 **Vad:** Varje kontroll fångar de fel den förväntar sig och returnerar rätt `FailureReason`, t.ex. `Unreachable` när sajten inte svarar. Fel som egentligen är fynd, t.ex. ett ogiltigt TLS-certifikat, blir `Completed` med ett fynd. `ErrorHandlingDecorator` fångar alla övriga undantag och gör om dem till `Failed(Unexpected)`. Ersätter formuleringen i `PROJECT_CONTEXT.md` avsnitt 6 om att kontrollerna inte behöver egen `try/catch`.
 **Varför:** Samma undantag betyder olika saker i olika kontroller. En `HttpRequestException` från TLS-kontrollen kan betyda ett trasigt certifikat, alltså ett säkerhetsproblem, och skulle döljas om decoratorn gjorde om den till `Unreachable`. Bara kontrollen vet vad felet betyder där det uppstod. Bortvalt: att låta decoratorn översätta undantagstyper till orsaker, vilket kräver att den känner till varje kontroll inifrån och måste ändras för varje ny kontroll (bryter mot Open/Closed).
 **Var:** `Checks/`, `Decorators/ErrorHandlingDecorator.cs`, `PROJECT_CONTEXT.md` avsnitt 6.
 
 ## D-025: Avbrott från anroparen kastas vidare
-**Datum:** 2026-10-17 · **Beslutat av:** Joakim _(väntar på Erik)_
+**Datum:** 2026-10-17 · **Beslutat av:** Joakim, Erik
 **Vad:** En dekorerad kontroll kastar aldrig undantag, utom `OperationCanceledException` när anroparens `ct` är avbruten. `ErrorHandlingDecorator` släpper bara igenom `OperationCanceledException` om `ct.IsCancellationRequested` är sant. Andra avbrott, t.ex. när `HttpClient` får sin egen timeout, blir `Failed`. Dokumenteras i XML-kommentaren i `ISecurityCheck`. `SecurityScanner` hanterar att `Task.WhenAll` kastar vid avbrott.
 **Varför:** Ett avbrott är inget resultat av kontrollen, och användaren som avbryter vill inte få en rapport full av misslyckade kontroller. Att bara titta på tokenen och inte på undantagets typ gör att en långsam sajt inte kraschar hela skanningen, eftersom `HttpClient` kastar `TaskCanceledException` vid sin egen timeout fast anroparen inte avbrutit. Bortvalt: att göra avbrott till `Failed`, och att släppa igenom alla `OperationCanceledException`.
 **Var:** `Contracts/ISecurityCheck.cs`, `Decorators/ErrorHandlingDecorator.cs`, `Scanning/SecurityScanner.cs`.
@@ -190,10 +190,14 @@
 **Varför:** Basklassen skulle bara samla referensen till den inre kontrollen och Name, vilket är ett par rader per decorator och inte motiverar ett extra arvslager. Utan basklass går varje decorator att läsa för sig i en fil. Mönstrets kärna är kvar: varje decorator implementerar samma gränssnitt som det den slår in, så de kan staplas utan att SecurityScanner märker något. GoF beskriver basklassen som valfri främst när man bara lägger till ett ansvar; vi har tre, så valet är en avvägning. Omprövas om fler decorators tillkommer (t.ex. RetryDecorator och CachingDecorator i steg 2). Bortvalt: en abstrakt SecurityCheckDecorator enligt GoF:s beskrivning, som hade samlat referensen och Name på ett ställe.  Bortvalt: en abstrakt `SecurityCheckDecorator` enligt GoF:s beskrivning, som hade samlat referensen och `Name` på ett ställe.
 **Var:** `Decorators/`.
 
+## D-030: SecurityScanner returnerar ScanReport
+**Datum:** 2026-10-20 · **Beslutat av:** Erik _(väntar på Joakim)_
+**Vad:** `SecurityScanner.ScanAsync` returnerar en `ScanReport` med domänen, om den godkändes, ett eventuellt nekandemeddelande och en lista med `CheckResult`. Den skapas bara via `ScanReport.Rejected(...)` och `ScanReport.Completed(...)`. Besvarar den öppna frågan om vad scannern returnerar.
+**Varför:** En nekad domän är ett förväntat utfall och inget undantag (D-021), så meddelandet behöver en plats i svaret. En ren lista med `CheckResult` kan inte bära det. Fabriksmetoderna gör motsägelsefulla rapporter omöjliga att skapa, t.ex. en nekad domän med resultat, på samma sätt som D-018. Bortvalt: att returnera `IReadOnlyList<CheckResult>` och kasta ett undantag vid nekad domän.
+**Var:** `Scanning/ScanReport.cs`, `Scanning/SecurityScanner.cs`.
+
 ---
 
 ## Öppna frågor
 
 - **Fast veckomöte:** ska vi ha en fast avstämning i veckan utöver den löpande kontakten?
-- **Var kopplas decorators ihop med kontrollerna?** Förslag: i `Program.cs` i Cli och Web, så att `SecurityScanner` inte behöver känna till decorators.
-- **Vad returnerar `SecurityScanner` till gränssnittet?** En lista med `CheckResult` eller en egen typ (t.ex. `ScanReport`) som också kan bära valideringsmeddelandet från `DomainValidator` (D-021)? Behöver bestämmas innan Blazor-vyn.

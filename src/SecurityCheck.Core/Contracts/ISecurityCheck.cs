@@ -15,5 +15,9 @@ public interface ISecurityCheck
     /// Kör kontrollen. Returnerar Completed med fynd (tom lista om inga problem hittades),
     /// eller Failed med en FailureReason om kontrollen inte kunde genomföras.
     /// </summary>
+    /// <exception cref="OperationCanceledException">
+    /// Kastas bara när anroparens <paramref name="ct"/> är avbruten. En dekorerad kontroll kastar inga
+    /// andra undantag; övriga fel blir Failed, även avbrott som inte kommer från anroparen (D-024, D-025).
+    /// </exception>
     Task<CheckResult> RunAsync(string domain, CancellationToken ct);
 }

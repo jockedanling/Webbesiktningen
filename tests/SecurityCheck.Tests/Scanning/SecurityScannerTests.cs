@@ -96,6 +96,24 @@ public class SecurityScannerTests
         Assert.Equal(["TLS", "Headers"], report.Results.Select(r => r.CheckName));
     }
 
+    [Fact]
+    public async Task ScanAsync_CallerCancels_ThrowsOperationCanceledException()
+    {
+        // Arrange
+        // Kontrollen beter sig som en dekorerad kontroll enligt D-025: kastar vidare när ct är avbruten
+        var check = Substitute.For<ISecurityCheck>();
+        check.RunAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(call => Task.FromCanceled<CheckResult>(call.Arg<CancellationToken>()));
+        var scanner = new SecurityScanner([check], CreateAcceptingValidator());
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        // ThrowsAnyAsync eftersom avbrott ofta kommer som TaskCanceledException, som ärver från OperationCanceledException
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => scanner.ScanAsync("example.com", cts.Token));
+    }
+
     private static IDomainValidator CreateAcceptingValidator()
     {
         var validator = Substitute.For<IDomainValidator>();

@@ -34,6 +34,7 @@ public sealed class SecurityScanner
 
         // Starta alla kontroller direkt och vänta på att alla blir klara.
         // Undantag fångas av ErrorHandlingDecorator runt varje kontroll, inte här.
+        // Avbryter anroparen kastas OperationCanceledException vidare till anroparen (D-025).
         var tasks = _checks.Select(check => check.RunAsync(domain, ct));
         CheckResult[] results = await Task.WhenAll(tasks);
 
