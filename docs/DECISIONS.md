@@ -196,8 +196,15 @@
 **Varför:** En nekad domän är ett förväntat utfall och inget undantag (D-021), så meddelandet behöver en plats i svaret. En ren lista med `CheckResult` kan inte bära det. Fabriksmetoderna gör motsägelsefulla rapporter omöjliga att skapa, t.ex. en nekad domän med resultat, på samma sätt som D-018. Bortvalt: att returnera `IReadOnlyList<CheckResult>` och kasta ett undantag vid nekad domän.
 **Var:** `Scanning/ScanReport.cs`, `Scanning/SecurityScanner.cs`.
 
+## D-031: Regler för vilka domäner DomainValidator godkänner
+**Datum:** 2026-10-20 · **Beslutat av:** Erik _(väntar på Joakim)_
+**Vad:** `DomainValidator` kontrollerar först formatet och slår sedan upp domänen i DNS. Nekas: tom indata, hela adresser (`https://`, sökväg, port), alla IP-adresser (även publika), `localhost`, namn utan punkt (t.ex. `intranet`) och domäner som inte finns. En domän nekas om någon av dess IP-adresser är intern eller reserverad, även IPv4 förklädd som IPv6 (`::ffff:127.0.0.1`). Svenska tecken (t.ex. `åkeri.se`) stöds. DNS-uppslagningen ligger bakom `IDnsResolver`; `DnsResolver` returnerar en tom lista när domänen inte finns och kastar vidare vid andra DNS-fel. Kompletterar D-014, D-015 och D-021.
+**Varför:** Hela adresser nekas istället för att domänen plockas ut, eftersom det är enklast och inte kräver ändringar i `DomainValidationResult` och `SecurityScanner`; att plocka ut domänen är en möjlig förbättring senare. Alla IP-adresser nekas eftersom appen kontrollerar domäner: TLS-certifikat och e-postskydd går inte att kontrollera mot en IP-adress. Namn utan punkt kan slås upp i ett internt nätverk och är en SSRF-risk. Alla adresser måste vara publika, annars kan en angripare blanda in en intern adress bland publika. Ogiltig indata stoppas före DNS, så att ingen förfrågan lämnar appen i onödan. `IDnsResolver` gör att valideringen kan testas utan nätverk. Bortvalt: att plocka ut domänen ur en hel adress, och att tillåta publika IP-adresser. Känd begränsning: kontrollerna slår upp domänen igen efter valideringen, så en angripare kan byta adress däremellan (DNS rebinding).
+**Var:** `Validation/DomainValidator.cs`, `Validation/IDnsResolver.cs`, `Validation/DnsResolver.cs`.
+
 ---
 
 ## Öppna frågor
 
 - **Fast veckomöte:** ska vi ha en fast avstämning i veckan utöver den löpande kontakten?
+- **Vad händer när DNS-servern inte svarar?** `DnsResolver` kastar då vidare, och `SecurityScanner` fångar inte undantaget, så skanningen kraschar. Ska scannern fånga det och returnera en egen sorts `ScanReport`, eller räcker generell felhantering i gränssnittet?
