@@ -202,6 +202,12 @@
 **Varför:** Hela adresser nekas istället för att domänen plockas ut, eftersom det är enklast och inte kräver ändringar i `DomainValidationResult` och `SecurityScanner`; att plocka ut domänen är en möjlig förbättring senare. Alla IP-adresser nekas eftersom appen kontrollerar domäner: TLS-certifikat och e-postskydd går inte att kontrollera mot en IP-adress. Namn utan punkt kan slås upp i ett internt nätverk och är en SSRF-risk. Alla adresser måste vara publika, annars kan en angripare blanda in en intern adress bland publika. Ogiltig indata stoppas före DNS, så att ingen förfrågan lämnar appen i onödan. `IDnsResolver` gör att valideringen kan testas utan nätverk. Bortvalt: att plocka ut domänen ur en hel adress, och att tillåta publika IP-adresser. Känd begränsning: kontrollerna slår upp domänen igen efter valideringen, så en angripare kan byta adress däremellan (DNS rebinding).
 **Var:** `Validation/DomainValidator.cs`, `Validation/IDnsResolver.cs`, `Validation/DnsResolver.cs`.
 
+## D-032: TimeoutDecorator slutar vänta även om kontrollen inte lyssnar på avbrottet
+**Datum:** 2026-10-21 · **Beslutat av:** Joakim
+**Vad:** `TimeoutDecorator` skickar en länkad token (anroparens `ct` plus tidsgränsen via `CancelAfter`) till den inre kontrollen och väntar dessutom med `WaitAsync(timeoutCts.Token)`. Decoratorn returnerar därför `Failed(Timeout)` när tidsgränsen löper ut, även om den inre kontrollen inte reagerar på avbrottet. Den länkade `CancellationTokenSource` disposas med `using` efter varje körning. Kompletterar D-027.
+**Varför:** Avbrott i .NET bygger på att den som avbryts själv tittar på tokenen. En kontroll som inte gör det, eller ett anrop som inte går att avbryta (t.ex. DNS-uppslag på Linux, där CI körs), skulle annars låta användaren vänta utan gräns. Syftet med decoratorn är en övre gräns för hur länge en kontroll får ta. `using` behövs eftersom källan håller en timer och en registrering på anroparens token. Nackdel: en kontroll som inte lyssnar fortsätter köra i bakgrunden tills den blir klar, och dess resultat kastas. Bortvalt: bara länkad token utan `WaitAsync`, vilket är enklare men inte ger någon garanti.
+**Var:** `Decorators/TimeoutDecorator.cs`, `TimeoutDecoratorTests.RunAsync_InnerIgnoresToken_ReturnsFailedTimeout`.
+
 ---
 
 ## Öppna frågor
