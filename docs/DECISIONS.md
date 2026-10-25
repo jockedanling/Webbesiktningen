@@ -208,6 +208,12 @@
 **Varför:** Avbrott i .NET bygger på att den som avbryts själv tittar på tokenen. En kontroll som inte gör det, eller ett anrop som inte går att avbryta (t.ex. DNS-uppslag på Linux, där CI körs), skulle annars låta användaren vänta utan gräns. Syftet med decoratorn är en övre gräns för hur länge en kontroll får ta. `using` behövs eftersom källan håller en timer och en registrering på anroparens token. Nackdel: en kontroll som inte lyssnar fortsätter köra i bakgrunden tills den blir klar, och dess resultat kastas. Bortvalt: bara länkad token utan `WaitAsync`, vilket är enklare men inte ger någon garanti.
 **Var:** `Decorators/TimeoutDecorator.cs`, `TimeoutDecoratorTests.RunAsync_InnerIgnoresToken_ReturnsFailedTimeout`.
 
+## D-033: TXT-poster slås upp med DnsClient bakom ITxtRecordResolver
+**Datum:** 2026-10-22 · **Beslutat av:** Joakim _(väntar på Erik)_
+**Vad:** `EmailProtectionCheck` slår upp SPF (TXT på domänen) och DMARC (TXT på `_dmarc.<domän>`) via ett eget interface, `ITxtRecordResolver`. Implementationen använder NuGet-paketet `DnsClient`, som Core får som nytt beroende. Resolvern returnerar en sträng per post, med postens delsträngar (högst 255 tecken var) ihopslagna, och en tom lista när namnet inte finns eller saknar TXT-poster. När DNS-servern inte svarar eller svarar med ett fel kastas `IOException`, som kontrollen gör om till `Failed(Unreachable)` (D-024).
+**Varför:** `System.Net.Dns` kan bara slå upp IP-adresser, inte TXT-poster. `DnsClient` är etablerat och stöder `CancellationToken`. Interfacet gör att kontrollen kan testas utan nätverk, på samma sätt som `ICertificateFetcher` och `IDnsResolver` (D-031), och att kontrollen inte är bunden till biblioteket. `IOException` gör att kontrollen hanterar nätverksfel på samma sätt som `TlsCertificateCheck`. Ett eget interface istället för att utöka `IDnsResolver`, eftersom de har olika ansvar och olika ägare. Bortvalt: DNS-over-HTTPS via Google eller Cloudflare, som skickar användarnas domäner till en tredje part och gör appen beroende av en extern tjänst; att skriva DNS-protokollet själv; att släppa igenom `DnsResponseException` från `DnsClient`, vilket binder kontrollen till biblioteket.
+**Var:** `Checks/ITxtRecordResolver.cs`, `Checks/TxtRecordResolver.cs`, `Checks/EmailProtectionCheck.cs`, `SecurityCheck.Core.csproj`.
+
 ---
 
 ## Öppna frågor

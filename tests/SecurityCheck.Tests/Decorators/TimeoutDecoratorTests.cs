@@ -2,6 +2,8 @@ using NSubstitute;
 using SecurityCheck.Core.Contracts;
 using SecurityCheck.Core.Decorators;
 
+namespace SecurityCheck.Tests.Decorators;
+
 public class TimeoutDecoratorTests
 {
     private const string CheckName = "Fejkkontroll";
