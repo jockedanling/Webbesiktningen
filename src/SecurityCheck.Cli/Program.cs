@@ -31,6 +31,7 @@ ISecurityCheck[] checks =
 [
     Decorate(new TlsCertificateCheck(new CertificateFetcher(), TimeProvider.System)),
     Decorate(new EmailProtectionCheck(new TxtRecordResolver())),
+    Decorate(new HttpsRedirectCheck(new RedirectFetcher())),
 ];
 
 var scanner = new SecurityScanner(checks, new DomainValidator(new DnsResolver()));
