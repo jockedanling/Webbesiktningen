@@ -1,0 +1,135 @@
+@using SecurityCheck.Core.Contracts;
+@using SecurityCheck.Core.Scanning;
+@using SecurityCheck.Core.Validation;
+@implements IDisposable
+@inject SecurityScanner Scanner
+@inject ILogger<ScanPanel> Logger
+
+<form @onsubmit="ScanAsync">
+    <label for="domain">Vilken webbplats vill du kontrollera?</label>
+    <input id="domain" @bind="domain" placeholder="t.ex. minfrisor.se" autocapitalize="off" spellcheck="false"
+           inputmode="url" maxlength="300" />
+    <button type="submit" disabled="@isScanning">
+        @(isScanning ? "Besiktar..." : "Besikta")
+    </button>
+
+    @* Nekad domän: meddelandet hör till fältet, ingen resultatsektion.*@
+
+    @if (report is { IsDomainAccepted: false })
+    {
+        <p role="alert">@report.RejectionMessage</p>
+    }
+</form>
+
+@if (isScanning)
+{
+    <section>
+        <p role="status">Besiktar @scanningDomain ...</p>
+    </section>
+}
+else if (hasError)
+{
+    <section>
+        <p>Något gick fel när vi skulle besikta domänen. Försök igen om en stund.</p>
+        <button type="button" @onclick="ScanAsync">Försök igen</button>
+    </section>
+}
+else if (report is { IsDomainAccepted: true })
+{
+    <section>
+        <h2>Resultat för @report.Domain</h2>
+        @foreach (var result in report.Results)
+        {
+            <article>
+                <h3>@result.CheckName</h3>
+
+                @if (result.Status == CheckStatus.Failed)
+                {
+                    <p>Vi kunde inte genomföra den här kontrollen just nu (@Describe(result.FailureReason)). Det betyder inte att
+                        något är fel.</p>
+                    }
+                else
+                    {
+                        @foreach (var findings in result.Findings)
+                        {
+                            <h4>@Label(findings.Severity): @findings.Title</h4>
+                            <p>@findings.Explanation</p>
+                            <p><strong>Åtgärd:</strong> @findings.Recommendation</p>
+                        }
+                    }
+                </article>
+            }
+        </section>
+    }
+
+@code {
+    private string domain = "";
+    private string scanningDomain = "";
+    private bool isScanning;
+    private bool hasError;
+    private ScanReport? report;
+    private CancellationTokenSource? cts;
+
+    private async Task ScanAsync()
+    {
+        // Skydd mot att Enter och knappen startar två skanningar samtidigt
+        if (isScanning)
+        {
+            return;
+        }
+
+
+        // Ta bort det gamla resultat direkt, så att det inte blandas ihop med den nya domänen.
+        report = null;
+        hasError = false;
+        isScanning = true;
+        scanningDomain = DomainNormalizer.Normalize(domain);
+
+        cts?.Dispose();
+        cts = new CancellationTokenSource();
+
+        try
+        {
+            report = await Scanner.ScanAsync(domain, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Användaren lämnar sidan och Dispose avbröt skanningen. Det finns inget att visa.
+        }
+        catch (Exception ex)
+        {
+            // T.ex. att DNS-servern inte svarar. Ett ohanterat undantag skulle döda hela kretsen,
+            // så vi loggar detaljerna och visar ett användarvänligt meddelande.
+            Logger.LogError(ex, "Skanningen av {Domain} misslyckas", scanningDomain);
+            hasError = true;
+        }
+        finally
+        {
+            isScanning = false;
+        }
+    }
+    public void Dispose()
+    {
+        cts?.Cancel();
+        cts?.Dispose();
+    }
+
+    // Tekniska detaljer visas aldrig för användaren, bara en vänlig förklaring
+    private static string Describe(FailureReason? reason) => reason switch
+    {
+        FailureReason.Timeout => "det tog för lång tid",
+        FailureReason.Unreachable => "webbplatsen svarade inte",
+        FailureReason.InvalidInput => "domänen gick inte att kontrollera",
+        _ => "ett oväntat fel uppstod",
+    };
+
+    private static string Label(Severity severity) => severity switch
+    {
+        Severity.High => "Allvarligt",
+        Severity.Medium => "Medel",
+        Severity.Low => "låg",
+        _ => "Info",
+    };
+
+
+}
