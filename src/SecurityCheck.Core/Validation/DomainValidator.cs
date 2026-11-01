@@ -5,7 +5,7 @@ using System.Net.Sockets;
 namespace SecurityCheck.Core.Validation;
 
 /// <summary>
-/// Kontrollerar att en domän är säker att skanna (SSRF-skydd, D-014, D-015).
+/// Kontrollerar att en domän är säker att skanna.
 /// Kontrollerar först formatet och slår sedan upp domänen i DNS. Alla adresser måste vara publika.
 /// </summary>
 public sealed class DomainValidator : IDomainValidator
@@ -118,7 +118,7 @@ public sealed class DomainValidator : IDomainValidator
         string ascii;
         try
         {
-            // Gör om t.ex. "åkeri.se" till "xn--keri-loa.se", så att svenska tecken fungerar
+            // Gör om t.ex. "åkeri.se" till "xn--keri-poa.se", så att svenska tecken fungerar
             ascii = new IdnMapping().GetAscii(host);
         }
         catch (ArgumentException)
