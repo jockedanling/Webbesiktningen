@@ -1,0 +1,38 @@
+.info-section {
+    border-top: 1px solid #333;
+}
+.info-section:last-of-type {
+    border-bottom: 1px solid #333;
+}
+
+.info-section summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0.5rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.info-section summary::-webkit-details-marker {
+    display: none;
+}
+.info-section summary::after {
+    content: "▾" / "";
+    font-size: 1.5rem;
+    color: #999;
+    transition: transform 0.2s;
+}
+.info-section[open] summary::after {
+    transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .info-section summary::after {
+        transition: none;
+    }
+}
+
+.info-section-body {
+    padding: 0 0.5rem 1rem;
+}

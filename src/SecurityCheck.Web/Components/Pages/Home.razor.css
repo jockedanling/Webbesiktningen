@@ -1,0 +1,16 @@
+.hero {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.hero p {
+  max-width: 35rem;
+  margin: 0 auto;
+}
+
+.blazor-error-ui {
+  display: none;
+}
+#blazor-error-ui .dismiss {
+  display: none;
+}

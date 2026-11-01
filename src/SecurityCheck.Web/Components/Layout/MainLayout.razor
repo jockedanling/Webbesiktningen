@@ -1,23 +1,26 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<header class="site-header">
+    <nav aria-label="Huvudmeny">
+        <ul>
+            <li><a href="#hem">Hem</a></li>
+            <li><a href="#processen">Processen</a></li>
+            <li><a href="#hur-vi-har-tankt">Hur vi har tänkt</a></li>
+            <li class="logo">
+                <a href="#hem"><img src="img/webbesiktningen-logo-stacked-dark.svg" alt="Webbesiktningen"/></a>
+            </li>
+            <li><a href="#team">Team</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+    </nav>
+</header>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<main>
+    @Body
+</main>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    Ett oväntat fel har uppstått.
+<a href="." class="reload">Ladda om sidan</a>
+<span class="dismiss">X</span>
 </div>

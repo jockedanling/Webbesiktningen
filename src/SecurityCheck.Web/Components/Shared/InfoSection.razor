@@ -1,0 +1,19 @@
+<details id="@Id" class="info-section">
+    <summary>@Title</summary>
+    <div class="info-section-body">
+        @ChildContent
+    </div>
+</details>
+
+@code {
+    // Används som mål för länkarna i menyn, tex."processen" för href="#processen"
+    [Parameter, EditorRequired]
+    public string Id {get; set;} = "";
+
+    [Parameter, EditorRequired]
+    public string Title {get; set;} = "";
+
+    // Det som står emellan <InfoSection> och </InfoSection>
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent {get; set;} = default!;
+}

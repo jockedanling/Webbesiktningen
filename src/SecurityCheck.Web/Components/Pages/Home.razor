@@ -1,9 +1,20 @@
 ﻿@page "/"
 
+
 <PageTitle>Webbesiktningen</PageTitle>
 
-<h1>Webbesiktningen</h1>
-
-Welcome to your new app.
-
+<section id="hem" class="hero">
+    <h1>Webbesiktningen</h1>
+    <p>Skriv in ditt företags webbadress så kontrollerar vi några av de vanligaste
+        säkerhetsinställningarna och förklarar vad du ska göra åt dem.
+    </p>
+</section>
+@* Skanningen behöver vara interaktiv, resten av sidan är statisk text *@
 <ScanPanel @rendermode="InteractiveServer" />
+
+<InfoSection Id="processen" Title="Processen"> Text kommer</InfoSection>
+<InfoSection Id="hur-vi-har-tankt" Title="Hur vi har tänkt"> Text kommer...</InfoSection>
+<InfoSection Id="team" Title="Team"> Text kommer...</InfoSection>
+<InfoSection Id="faq" Title="FAQ">
+    <p>Text kommer.</p>
+</InfoSection>
