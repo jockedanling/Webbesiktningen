@@ -6,7 +6,7 @@ namespace SecurityCheck.Core.Scanning;
 /// <summary>
 /// Kör en samling säkerhetskontroller mot en domän. Context i Strategy-mönstret:
 /// scannern känner bara till ISecurityCheck, inte vilka kontroller eller decorators som finns.
-/// Validerar domänen först (D-015) och kör sedan alla kontroller parallellt.
+/// Validerar domänen först och kör sedan alla kontroller parallellt.
 /// </summary>
 public sealed class SecurityScanner
 {
@@ -25,19 +25,21 @@ public sealed class SecurityScanner
 
     public async Task<ScanReport> ScanAsync(string domain, CancellationToken ct = default)
     {
-        var validation = await _validator.ValidateAsync(domain, ct);
+        var normalized = DomainNormalizer.Normalize(domain);
+
+        var validation = await _validator.ValidateAsync(normalized, ct);
         if (!validation.IsValid)
         {
             // Message är aldrig null här, eftersom DomainValidationResult.Invalid kräver ett meddelande
-            return ScanReport.Rejected(domain, validation.Message!);
+            return ScanReport.Rejected(normalized, validation.Message!);
         }
 
         // Starta alla kontroller direkt och vänta på att alla blir klara.
         // Undantag fångas av ErrorHandlingDecorator runt varje kontroll, inte här.
-        // Avbryter anroparen kastas OperationCanceledException vidare till anroparen (D-025).
-        var tasks = _checks.Select(check => check.RunAsync(domain, ct));
+        // Avbryter anroparen kastas OperationCanceledException vidare till anroparen.
+        var tasks = _checks.Select(check => check.RunAsync(normalized, ct));
         CheckResult[] results = await Task.WhenAll(tasks);
 
-        return ScanReport.Completed(domain, results);
+        return ScanReport.Completed(normalized, results);
     }
 }

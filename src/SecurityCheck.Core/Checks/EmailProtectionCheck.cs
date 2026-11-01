@@ -19,13 +19,18 @@ public sealed class EmailProtectionCheck : ISecurityCheck
 
     public async Task<CheckResult> RunAsync(string domain, CancellationToken ct)
     {
+        // E-post skickas aldrig från "www-namnet", så SPF och DMARC slår upp på grunddomänen.
+        var mailDomain = domain.StartsWith("www.", StringComparison.OrdinalIgnoreCase)
+        ? domain[4..]
+        : domain;
+
         IReadOnlyList<string> domainRecords;
         IReadOnlyList<string> dmarcRecords;
 
         try
         {
-            domainRecords = await _resolver.GetTxtRecordsAsync(domain, ct);
-            dmarcRecords = await _resolver.GetTxtRecordsAsync($"_dmarc.{domain}", ct);
+            domainRecords = await _resolver.GetTxtRecordsAsync(mailDomain, ct);
+            dmarcRecords = await _resolver.GetTxtRecordsAsync($"_dmarc.{mailDomain}", ct);
         }
         catch (IOException)
         {
@@ -121,7 +126,7 @@ public sealed class EmailProtectionCheck : ISecurityCheck
         "DMARC övervakar bara",
         Severity.Medium,
         "Domänen har DMARC, men den är inställd på att bara samla in rapporter. Förfalskade mejl släpps fortfarande igenom.",
-        "Be den som sköter din e-posrt att ändra policyn till quarantine eller reject när ni har sett att er egen e-posrt kommer fram som den ska.");
+        "Be den som sköter din e-posrt att ändra policyn till quarantine eller reject när ni har sett att er egen e-post kommer fram som den ska.");
     
     private static Finding DmarcOk() => new(
         "DMARC skyddar domänen",
