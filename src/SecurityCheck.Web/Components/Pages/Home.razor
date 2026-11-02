@@ -9,164 +9,176 @@
         säkerhetsinställningarna och förklarar vad du ska göra åt dem.
     </p>
 </section>
-@* Skanningen behöver vara interaktiv, resten av sidan är statisk text *@
-<ScanPanel @rendermode="InteractiveServer" />
+<div class="content">
+    @* Skanningen behöver vara interaktiv, resten av sidan är statisk text *@
+    <ScanPanel @rendermode="InteractiveServer" />
+    <div class="info">
+        <InfoSection Id="processen" Title="Processen">
+            <p>
+                Du skriver in ditt företags webbadress. Det går också bra att klistra in en hel adress
+                från webbläsaren eller skriva din e-postadress, så plockar vi själva ut domänen.
+                Sedan gör vi tre kontroller samtidigt. Det brukar ta några sekunder.
+            </p>
+            <p>
+                Vi tittar bara på sådant som alla kan se utifrån, på samma sätt som när en besökare
+                går in på din webbplats. Vi försöker aldrig ta oss in och vi ändrar ingenting.
+            </p>
 
-<InfoSection Id="processen" Title="Processen">
-    <p>
-        Du skriver in ditt företags webbadress. Det går också bra att klistra in en hel adress 
-        från webbläsaren eller skriva din e-postadress, så plockar vi själva ut domänen.
-        Sedan gör vi tre kontroller samtidigt. Det brukar ta några sekunder.
-    </p>
-    <p>
-        Vi tittar bara på sådant som alla kan se utifrån, på samma sätt som när en besökare
-        går in på din webbplats. Vi försöker aldrig ta oss in och vi ändrar ingenting.
-    </p>
+            <h3>1. Låset i webbläsaren (TLS-certifikat)</h3>
+            <p>
+                Hänglåset bredvid adressen i webbläsaren betyder att trafiken mellan besökaren och din
+                webbplats är krypterad. Andra kan då inte läsa till exempel det som skrivs i ett
+                kontaktformulär. Låset bygger på ett certifikat, ungefär som en id-handling för
+                webbplatsen. Vi kontrollerar att certifikatet:
+            </p>
+            <ul>
+                <li>inte har gått ut</li>
+                <li>gäller för just din adress</li>
+                <li>är utfärdat av någon som webbläsarna litar på.</li>
+            </ul>
+            <p>
+                Om certifikatet går ut snart säger vi till. Ett utgånget certifikat gör att besökarna
+                får en röd varning och ofta lämnar sidan.
+            </p>
 
-    <h3>1. Låset i webbläsaren (TLS-certifikat)</h3>
-    <p>
-        Hänglåset bredvid adressen i webbläsaren betyder att trafiken mellan besökaren och  din
-        webbplats är krypterad. Andra kan då inte läsa till exempel det som skrivs i ett
-        kontaktformulär. Låset bygger på ett certifikat, ungefär som en id-handling för
-        webbplatsen. Vi kontrollerar att certifikatet:
-    </p>
-    <ul>
-        <li>inte har gått ut</li>
-        <li>gäller för just din adress</li>
-        <li>är utfärdat av någon som webbläsarna litar på.</li>
-    </ul>
-    <p>
-        Om certifikatet går ut snart säger vi till. Ett utgånget certifikat gör att besökarna
-        får en röd varning och ofta lämnar sidan.
-    </p>
+            <h3>2. Skydd mot falska mail (e-postskydd)</h3>
+            <p>
+                Vem som helst kan skicka ett mail som ser ut att komma från ditt företag, till exempel
+                en falsk faktura till dina kunder. Det finns två inställningar som gör det svårare.
+                Den ena, <strong>SPF</strong>, talar om vilka servrar som får skicka mail i ditt namn.
+                Den andra, <strong>DMARC</strong>, talar om vad mottagaren ska göra med mail som inte
+                klarar kontrollen. Vi kontrollerar att båda finns och är rätt inställda.
+            </p>
 
-    <h3>2. Skydd mot falska mail (e-postskydd)</h3>
-    <p>
-        Vem som helst kan skicka ett mail som ser ut att komma från ditt företag, till exempel
-        en falsk faktura till dina kunder. Det finns två inställningar som gör det svårare.
-        Den ena, <strong>SPF</strong>, talar om vilka servrar som får skicka mail i ditt namn.
-        Den andra, <strong>DMARC</strong>, talar om vad mottagaren ska göra med mail som inte 
-        klarar kontrollen. Vi kontrollerar att båda finns och är rätt inställda.
-    </p>
+            <h3>3. Säker adress som standard (HTTPS-omdirigering)</h3>
+            <p>
+                Många skriver bara adressen utan <code>https://</code>, eller klickar på en gammal länk.
+                Då ska webbplatsen automatiskt skicka besökaren vidare till den krypterade versionen.
+                Vi kontrollerar att det sker. Annars kan besökarna hamna på en okrypterad sida utan att
+                märka det.
+            </p>
 
-    <h3>3. Säker adress som standard (HTTPS-omdirigering)</h3>
-    <p>
-        Många skriver bara adressen utan <code>https://</code>, eller klickar på en gammal länk. 
-        Då ska webbplatsen automatiskt skicka besökaren vidare till den krypterade versionen. 
-        Vi kontrollerar att det sker. Annars kan besökarna hamna på en okrypterad sida utan att 
-        märka det. 
-    </p>
+            <h3>Så läser du resultatet</h3>
+            <p>Precis som vid en bilbesiktning får du anmärkningar:</p>
+            <ul>
+                <li><strong>Allvarligt:</strong> åtgärda så snart som möjligt.</li>
+                <li><strong>Medel:</strong> bör åtgärdas.</li>
+                <li><strong>Låg:</strong> bra att ordna när du har tid.</li>
+                <li><strong>Info:</strong> allt ser bra ut. Vi visar bara vad vi kontrollerade.</li>
+            </ul>
+            <p>
+                Till varje anmärkning får du en förklaring och ett förslag på vad du kan göra. Ibland
+                står det att en kontroll inte kunde genomföras, till exempel för att webbplatsen svarade
+                för långsamt. Det betyder inte att något är fel. Försök gärna igen om en stund.
+            </p>
+        </InfoSection>
+    
 
-    <h3>Så läser du resultatet</h3>
-    <p>Precis som vid en bilbesiktning får du anmärkningar:</p>
-    <ul>
-        <li><strong>Allvarligt:</strong> åtgärda så snart som möjligt.</li>
-        <li><strong>Medel:</strong> bör åtgärdas.</li>
-        <li><strong>Låg:</strong> bra att ordna när du har tid.</li>
-        <li><strong>Info:</strong> allt ser bra ut. Vi visar bara vad vi kontrollerade.</li>
-    </ul>
-    <p>
-        Till varje anmärkning får du en förklaring och ett förslag på vad du kan göra. Ibland 
-        står det att en kontroll inte kunde genomföras, till exempel för att webbplatsen svarade 
-        för långsamt. Det betyder inte att något är fel. Försök gärna igen om en stund.
-    </p>
-</InfoSection>
 
-<InfoSection Id="hur-vi-har-tankt" Title="Hur vi har tänkt">
-    <p>
-        Många småföretagare har en webbplats och en e-postadress, men ingen IT-avdelning. 
-        De verktyg som finns för att kontrollera säkerheten är oftast byggda för tekniker och 
-        svåra att förstå för alla andra. 
-    </p>
-    <p>
-        Vi ville bygga något enkelt: en besiktning av webbplatsen, ungefär som för bilen. 
-        Du behöver inte veta hur det fungerar. Du behöver bara få veta om något behöver 
-        åtgärdas och vad du ska be din webbyrå eller IT-person om. 
-    </p>
-    <p>Därför har vi valt att:</p>
-    <ul>
-        <li>
-            <strong>kontrollera få saker, men viktiga:</strong> de tre kontrollerna skyddar mot 
-            några av de vanligaste och dyraste problemen, alltså kunder som inte litar på sidan 
-            och falska fakturor i ditt namn 
-        </li>
-        <li>
-            <strong>förklara på vanlig svenska:</strong> inga tekniska felkoder, utan vad det 
-            betyder och vad du kan göra 
-        </li>
-        <li>
-            <strong>bara titta, aldrig röra:</strong> vi gör inga intrång eller tester som kan 
-            påverka din webbplats. 
-        </li>
-    </ul>
-    <p>
-        Vi har byggt webbplatsen med samma omsorg om säkerheten som vi rekommenderar till andra. 
-        Den går till exempel bara att använda för att kontrollera riktiga, publika domäner. 
-    </p>
-</InfoSection>
+    
+        <InfoSection Id="hur-vi-har-tankt" Title="Hur vi har tänkt">
+            <p>
+                Många småföretagare har en webbplats och en e-postadress, men ingen IT-avdelning.
+                De verktyg som finns för att kontrollera säkerheten är oftast byggda för tekniker och
+                svåra att förstå för alla andra.
+            </p>
+            <p>
+                Vi ville bygga något enkelt: en besiktning av webbplatsen, ungefär som för bilen.
+                Du behöver inte veta hur det fungerar. Du behöver bara få veta om något behöver
+                åtgärdas och vad du ska be din webbyrå eller IT-person om.
+            </p>
+            <p>Därför har vi valt att:</p>
+            <ul>
+                <li>
+                    <strong>kontrollera få saker, men viktiga:</strong> de tre kontrollerna skyddar mot
+                    några av de vanligaste och dyraste problemen, alltså kunder som inte litar på sidan
+                    och falska fakturor i ditt namn
+                </li>
+                <li>
+                    <strong>förklara på vanlig svenska:</strong> inga tekniska felkoder, utan vad det
+                    betyder och vad du kan göra
+                </li>
+                <li>
+                    <strong>bara titta, aldrig röra:</strong> vi gör inga intrång eller tester som kan
+                    påverka din webbplats.
+                </li>
+            </ul>
+            <p>
+                Vi har byggt webbplatsen med samma omsorg om säkerheten som vi rekommenderar till andra.
+                Den går till exempel bara att använda för att kontrollera riktiga, publika domäner.
+            </p>
+        </InfoSection>
+    
 
-<InfoSection Id="team" Title="Team">
-    <p>
-        Webbesiktningen är byggd av Erik och Joakim som ett projekt i kursen APR400 
-        vid Högskolan Väst. 
-    </p>
-    <ul>
-        <li>
-            <strong>Erik:</strong> byggde motorn som kör kontrollerna, kontrollen av adressen 
-            du skriver in och kontrollen av certifikatet. 
-        </li>
-        <li>
-            <strong>Joakim:</strong> byggde skyddet som gör att en långsam eller trasig webbplats 
-            inte stoppar hela besiktningen, kontrollen av e-postskyddet och kontrollen av 
-            HTTPS-omdirigeringen. Joakim byggde också grunden till webbplatsens utseende.
-        </li>
-    </ul>
-</InfoSection>
 
-<InfoSection Id="faq" Title="FAQ">
-    <h3>Vad ska jag skriva i fältet?</h3>
-    <p>
-        Din webbadress, till exempel <code>minfrisor.se</code>. Det går också att klistra 
-        in en hel adress från webbläsaren eller skriva din e-postadress.
-    </p>
+        <InfoSection Id="team" Title="Team">
+            <p>
+                Webbesiktningen är byggd av Erik och Joakim som ett projekt i kursen APR400
+                vid Högskolan Väst.
+            </p>
+            <ul>
+                <li>
+                    <strong>Erik:</strong> byggde motorn som kör kontrollerna, kontrollen av adressen
+                    du skriver in och kontrollen av certifikatet.
+                </li>
+                <li>
+                    <strong>Joakim:</strong> byggde skyddet som gör att en långsam eller trasig webbplats
+                    inte stoppar hela besiktningen, kontrollen av e-postskyddet och kontrollen av
+                    HTTPS-omdirigeringen. Joakim byggde också grunden till webbplatsens utseende.
+                </li>
+            </ul>
+        </InfoSection>
+    
 
-    <h3>Är det säkert för min webbplats?</h3>
-    <p>
-        Ja. Vi läser bara information som din webbplats redan visar för alla besökare. 
-        Vi försöker aldrig logga in, ta oss in eller belasta sidan. 
-    </p>
+    
+        <InfoSection Id="faq" Title="FAQ">
+            <h3>Vad ska jag skriva i fältet?</h3>
+            <p>
+                Din webbadress, till exempel <code>minfrisor.se</code>. Det går också att klistra
+                in en hel adress från webbläsaren eller skriva din e-postadress.
+            </p>
 
-    <h3>Betyder ett bra resultat att min webbplats är helt säker?</h3>
-    <p>
-        Nej. Vi kontrollerar tre viktiga grundinställningar, men säkerhet handlar om mycket mer: 
-        lösenord, uppdateringar, säkerhetskopior och annat. Se resultatet som en hälsokontroll, 
-        inte som en garanti. 
-    </p>
+            <h3>Är det säkert för min webbplats?</h3>
+            <p>
+                Ja. Vi läser bara information som din webbplats redan visar för alla besökare.
+                Vi försöker aldrig logga in, ta oss in eller belasta sidan.
+            </p>
 
-    <h3>Varför stod det att en kontroll inte kunde genomföras?</h3>
-    <p>
-        Det betyder oftast att webbplatsen svarade för långsamt eller inte alls just då. 
-        Det betyder inte att något är fel. Försök igen om en stund. 
-    </p>
+            <h3>Betyder ett bra resultat att min webbplats är helt säker?</h3>
+            <p>
+                Nej. Vi kontrollerar tre viktiga grundinställningar, men säkerhet handlar om mycket mer:
+                lösenord, uppdateringar, säkerhetskopior och annat. Se resultatet som en hälsokontroll,
+                inte som en garanti.
+            </p>
 
-    <h3>Jag förstår inte hur jag ska åtgärda en anmärkning. Vad gör jag?</h3>
-    <p>
-        Visa resultatet för den som sköter din webbplats eller e-post, till exempel webbyrån, 
-        webbhotellet eller din IT-konsult. Förslagen i rapporten är skrivna så att du kan 
-        skicka dem vidare. 
-    </p>
+            <h3>Varför stod det att en kontroll inte kunde genomföras?</h3>
+            <p>
+                Det betyder oftast att webbplatsen svarade för långsamt eller inte alls just då.
+                Det betyder inte att något är fel. Försök igen om en stund.
+            </p>
 
-    <h3>Hur ofta bör jag göra en besiktning?</h3>
-    <p>
-        En gång i månaden är en bra vana, och alltid efter att något har ändrats på webbplatsen 
-        eller e-posten. Certifikatet går ut med jämna mellanrum, så det som var rätt förra 
-        månaden kan vara fel idag. 
-    </p>
+            <h3>Jag förstår inte hur jag ska åtgärda en anmärkning. Vad gör jag?</h3>
+            <p>
+                Visa resultatet för den som sköter din webbplats eller e-post, till exempel webbyrån,
+                webbhotellet eller din IT-konsult. Förslagen i rapporten är skrivna så att du kan
+                skicka dem vidare.
+            </p>
 
-    <h3>Varför fick jag inte kontrollera en viss adress?</h3>
-    <p>
-        Av säkerhetsskäl kontrollerar vi bara riktiga, publika domäner. Interna adresser och 
-        IP-adresser nekas, så att ingen kan använda tjänsten för att komma åt något som inte 
-        är tänkt att synas utåt. 
-    </p>
-</InfoSection>
+            <h3>Hur ofta bör jag göra en besiktning?</h3>
+            <p>
+                En gång i månaden är en bra vana, och alltid efter att något har ändrats på webbplatsen
+                eller e-posten. Certifikatet går ut med jämna mellanrum, så det som var rätt förra
+                månaden kan vara fel idag.
+            </p>
+
+            <h3>Varför fick jag inte kontrollera en viss adress?</h3>
+            <p>
+                Av säkerhetsskäl kontrollerar vi bara riktiga, publika domäner. Interna adresser och
+                IP-adresser nekas, så att ingen kan använda tjänsten för att komma åt något som inte
+                är tänkt att synas utåt.
+            </p>
+        </InfoSection>
+    </div>
+
+
+</div>

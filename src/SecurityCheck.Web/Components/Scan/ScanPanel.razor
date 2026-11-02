@@ -5,25 +5,42 @@
 @inject SecurityScanner Scanner
 @inject ILogger<ScanPanel> Logger
 
-<form @onsubmit="ScanAsync">
+<form @onsubmit="ScanAsync" class="search-form">
     <label for="domain">Vilken webbplats vill du kontrollera?</label>
-    <input id="domain" @bind="domain" placeholder="t.ex. minfrisor.se" autocapitalize="off" spellcheck="false"
-           inputmode="url" maxlength="300" />
-    <button type="submit" disabled="@isScanning">
-        @(isScanning ? "Besiktar..." : "Besikta")
-    </button>
+    <div class="search-row">
+        <input id="domain" @bind="domain" placeholder="t.ex. minfrisor.se" autocapitalize="off" spellcheck="false"
+               inputmode="url" maxlength="300" class="search-input" aria-invalid="@(IsRejected ? "true" : null)"
+               aria-describedby="@(IsRejected ? "domain-error" : null)" />
+        <button type="submit" class="search-btn" disabled="@isScanning">
+            @if (isScanning)
+            {
+                <span class="spinner" aria-hidden="true"></span>
+                <text>Besiktar ...</text>
+            }
+            else
+            {
+                <text>Besikta</text>
+            }
+            
+        </button>
+        
+    </div>
+    
 
     @* Nekad domän: meddelandet hör till fältet, ingen resultatsektion.*@
 
     @if (report is { IsDomainAccepted: false })
     {
-        <p role="alert">@report.RejectionMessage</p>
+        <p role="alert" class="search-error" id="domain-error">@report.RejectionMessage</p>
     }
 </form>
 @if (isScanning)
 {
     <section>
-        <p role="status">Besiktar @scanningDomain ...</p>
+        <p role="status" class="scanning">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Besiktar <span class="domain">@scanningDomain</span> ...</span>
+        </p>
     </section>
 }
 else if (hasError)
@@ -66,6 +83,7 @@ else if (report is { IsDomainAccepted: true })
     private string scanningDomain = "";
     private bool isScanning;
     private bool hasError;
+    private bool IsRejected => report is { IsDomainAccepted: false };
     private ScanReport? report;
     private CancellationTokenSource? cts;
 

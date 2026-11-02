@@ -53,13 +53,13 @@ public sealed class HttpsRedirectCheck : ISecurityCheck
     private static Finding NoRedirect() => new(
         "Ingen omdirigering till HTTPS",
         Severity.High,
-        "Besökare som skriver adressen utan https:// hamnar på en okrypterad sida. Det de skriver i ett kontaktformulär kan då läsas av andra på samma nätverk, som är ett öppet wifi.",
+        "Besökare som skriver adressen utan https:// hamnar på en okrypterad sida. Det de skriver i ett kontaktformulär kan då läsas av andra på samma nätverk, som på ett öppet wifi.",
         "Be ditt webbhotell eller den som sköter webbplatsen att skicka alla besökare från http:// vidare till https://.");
 
     private static Finding RedirectsElsewhere() => new(
         "Skickar inte direkt vidare till HTTPS",
         Severity.Medium,
-        "Webbplatsen skickar besökare vidare, men inte direkt till en säker https-adress. Det kan bli rätt till slut, men första steget sker okrypterat",
+        "Webbplatsen skickar besökare vidare, men inte direkt till en säker https-adress. Det kan bli rätt till slut, men första steget sker okrypterat.",
         "Be den som sköter webbplatsen att skicka besökare direkt från http:// till https://."
     );
 
