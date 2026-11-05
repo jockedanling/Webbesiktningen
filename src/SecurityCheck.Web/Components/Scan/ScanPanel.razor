@@ -25,7 +25,8 @@
         </button>
         
     </div>
-    
+    <p class="search-hint">Gratis · Tar några sekunder · Vi ändrar ingenting på din webbplats
+    </p>
 
     @* Nekad domän: meddelandet hör till fältet, ingen resultatsektion.*@
 
@@ -77,7 +78,10 @@ else if (report is { IsDomainAccepted: true })
             }
         </section>
     }
-
+else
+    {
+    <CheckOverview />
+    }
 @code {
     private string domain = "";
     private string scanningDomain = "";
