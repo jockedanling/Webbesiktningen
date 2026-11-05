@@ -13,8 +13,8 @@
     {
         <article class="check-row">
             <div class="check-row-header">
-            <h3>@result.CheckName</h3>
-            <span class="check-status">@StatusText(result)</span>
+                <h3>@result.CheckName</h3>
+                <span class="check-status check-status--@StatusCss(result)">@StatusText(result)</span>
             </div>
             @if (result.Status == CheckStatus.Failed)
             {
@@ -27,9 +27,11 @@
             {
                 foreach (var finding in result.Findings.OrderByDescending(f => f.Severity))
                 {
-                    <h4>@Label(finding.Severity): @finding.Title</h4>
-                    <p>@finding.Explanation</p>
-                    <p><strong>Åtgärd:</strong> @finding.Recommendation</p>
+                    <div class="finding finding--@Css(finding.Severity)">
+                        <h4>@Label(finding.Severity): @finding.Title</h4>
+                        <p>@finding.Explanation</p>
+                        <p><strong>Åtgärd:</strong> @finding.Recommendation</p>
+                    </div>
                 }
             }
         </article>
@@ -42,7 +44,7 @@
     public ScanReport Report { get; set; } = default!;
 
     // Hur många kontroller som kunde genomföras.
-    //Utan den siffran kan en webbplats få ett bra resultat bara för att den svarade dåligt.
+    // Utan den siffran kan en webbplats få ett bra resultat bara för att den svarade dåligt.
 
     private int CompletedCount => Report.Results.Count(r => r.Status == CheckStatus.Completed);
 
@@ -92,4 +94,15 @@
         var worst = Worst(result);
         return worst == Severity.Info ? "Inga anmärkningar" : Label(worst);
     }
+
+    private static string Css(Severity severity) => severity switch
+    {
+        Severity.High => "high",
+        Severity.Medium => "medium",
+        Severity.Low => "low",
+        _ => "ok",
+    };
+
+    private static string StatusCss(CheckResult result) =>
+    result.Status == CheckStatus.Failed ? "neutral" : Css(Worst(result));
 }

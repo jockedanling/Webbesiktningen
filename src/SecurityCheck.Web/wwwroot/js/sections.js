@@ -9,4 +9,4 @@ document.addEventListener('click', event => {
         if(target instanceof HTMLDetailsElement) {
             target.open=true;
     }
-});
+}, true);

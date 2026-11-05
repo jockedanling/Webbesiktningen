@@ -19,6 +19,10 @@
   padding: 0;
   list-style: none;
 }
+.site-nav li {
+  width: 9rem;
+  text-align: center;
+}
 .site-nav ul:first-child {
   justify-content: flex-end;
 } /* vänster grupp mot loggan */
@@ -26,11 +30,7 @@
   justify-content: flex-start;
 } /* höger grupp mot loggan */
 
-/* Lika breda platser, så att flikarna speglas kring loggan */
-.site-nav li {
-  width: 8rem;
-  text-align: center;
-}
+
 .site-nav a {
   text-decoration: none;
   font-size: 0.95rem;
@@ -76,13 +76,16 @@
   height: 2.5rem;
   display: block;
 }
-@media (max-width: 1040px) {
+@media (max-width: 50rem) {
   .site-nav {
-    grid-template-columns: 1fr;
-    justify-items: center;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    column-gap:2rem ;
   }
-  .site-nav li {
-    width: auto;
+  .site-logo {
+    order: -1;
+    grid-column: 1 / -1;
+    justify-self: center;
   }
   .site-logo {
     order: -1;
@@ -95,4 +98,38 @@
     flex-wrap: wrap;
     gap: 0.25rem 2rem;
   }
+}
+.site-footer {
+  background: var(--color-navy);
+  color: var(--color-on-navy-muted);
+  margin-top: 3rem;
+  padding: 2rem 1.25rem;
+  font-size: 0.9rem;
+}
+.site-footer-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.5rem;
+}
+.site-footer p {
+  margin: 0;
+}
+.site-footer strong {
+  color: var(--color-on-navy);
+}
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 0.5rem;
+}
+.site-footer a {
+  color: var(--color-on-navy);
+  text-underline-offset: 0.2em;
+}
+.site-footer a:focus-visible {
+  outline: 2px solid var(--color-on-navy);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
