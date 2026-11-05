@@ -126,7 +126,7 @@ public sealed class EmailProtectionCheck : ISecurityCheck
         "DMARC övervakar bara",
         Severity.Medium,
         "Domänen har DMARC, men den är inställd på att bara samla in rapporter. Förfalskade mejl släpps fortfarande igenom.",
-        "Be den som sköter din e-posrt att ändra policyn till quarantine eller reject när ni har sett att er egen e-post kommer fram som den ska.");
+        "Be den som sköter din e-post att ändra policyn till quarantine eller reject när ni har sett att er egen e-post kommer fram som den ska.");
     
     private static Finding DmarcOk() => new(
         "DMARC skyddar domänen",
