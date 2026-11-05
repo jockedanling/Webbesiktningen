@@ -1,0 +1,53 @@
+@using SecurityCheck.Core.Contracts
+@using SecurityCheck.Core.Scanning
+
+<section>
+    <h2>Resultat för @Report.Domain</h2>
+
+    @foreach (var result in Report.Results)
+    {
+        <article>
+            <h3>@result.CheckName</h3>
+
+            @if (result.Status == CheckStatus.Failed)
+            {
+                <p>
+                    Vi kunde inte genomföra den här kontrollen just nu (@Describe(result.FailureReason)).
+                    Det betyder inte att något är fel.
+                </p>
+            }
+            else
+            {
+                foreach (var finding in result.Findings)
+                {
+                    <h4>@Label(finding.Severity): @finding.Title</h4>
+                    <p>@finding.Explanation</p>
+                    <p><strong>Åtgärd:</strong> @finding.Recommendation</p>
+                }
+            }
+        </article>
+    }
+</section>
+
+@code {
+    // ScanPanel skickar bara in en godkänd rapport, så den är aldrig null här.
+    [Parameter, EditorRequired]
+    public ScanReport Report { get; set; } = default!;
+
+    // Tekniska detaljer visas aldrig för användaren, bara en vänlig förklaring
+    private static string Describe(FailureReason? reason) => reason switch
+    {
+        FailureReason.Timeout => "det tog för lång tid",
+        FailureReason.Unreachable => "webbplatsen svarade inte",
+        FailureReason.InvalidInput => "domänen gick inte att kontrollera",
+        _ => "ett oväntat fel uppstod",
+    };
+
+    private static string Label(Severity severity) => severity switch
+    {
+        Severity.High => "Allvarligt",
+        Severity.Medium => "Medel",
+        Severity.Low => "låg",
+        _ => "Info",
+    };
+}

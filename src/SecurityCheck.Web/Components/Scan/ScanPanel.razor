@@ -1,4 +1,3 @@
-@using SecurityCheck.Core.Contracts;
 @using SecurityCheck.Core.Scanning;
 @using SecurityCheck.Core.Validation;
 @implements IDisposable
@@ -53,35 +52,13 @@ else if (hasError)
 }
 else if (report is { IsDomainAccepted: true })
 {
-    <section>
-        <h2>Resultat för @report.Domain</h2>
-        @foreach (var result in report.Results)
-        {
-            <article>
-                <h3>@result.CheckName</h3>
-
-                @if (result.Status == CheckStatus.Failed)
-                {
-                    <p>Vi kunde inte genomföra den här kontrollen just nu (@Describe(result.FailureReason)). Det betyder inte att
-                        något är fel.</p>
-                    }
-                else
-                    {
-                        @foreach (var findings in result.Findings)
-                        {
-                            <h4>@Label(findings.Severity): @findings.Title</h4>
-                            <p>@findings.Explanation</p>
-                            <p><strong>Åtgärd:</strong> @findings.Recommendation</p>
-                        }
-                    }
-                </article>
-            }
-        </section>
-    }
+    <ReportView Report="report" />
+}
 else
-    {
+{
     <CheckOverview />
-    }
+}
+
 @code {
     private string domain = "";
     private string scanningDomain = "";
@@ -134,23 +111,4 @@ else
         cts?.Cancel();
         cts?.Dispose();
     }
-
-    // Tekniska detaljer visas aldrig för användaren, bara en vänlig förklaring
-    private static string Describe(FailureReason? reason) => reason switch
-    {
-        FailureReason.Timeout => "det tog för lång tid",
-        FailureReason.Unreachable => "webbplatsen svarade inte",
-        FailureReason.InvalidInput => "domänen gick inte att kontrollera",
-        _ => "ett oväntat fel uppstod",
-    };
-
-    private static string Label(Severity severity) => severity switch
-    {
-        Severity.High => "Allvarligt",
-        Severity.Medium => "Medel",
-        Severity.Low => "låg",
-        _ => "Info",
-    };
-
-
 }
