@@ -1,98 +1,135 @@
-.page {
-    position: relative;
-    display: flex;
-    flex-direction: column;
+.site-header {
+  padding: 0.75rem 1rem;
+  background-color: var(--color-navy);
+}
+.site-nav {
+  /* Tre kolumner: två lika breda sidor och loggan i mitten */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  max-width: 60rem;
+  margin: 0 auto;
 }
 
-main {
-    flex: 1;
+.site-nav ul {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-nav li {
+  width: 9rem;
+  text-align: center;
+}
+.site-nav ul:first-child {
+  justify-content: flex-end;
+} /* vänster grupp mot loggan */
+.site-nav ul:last-child {
+  justify-content: flex-start;
+} /* höger grupp mot loggan */
+
+
+.site-nav a {
+  text-decoration: none;
+  font-size: 0.95rem;
+  opacity: 0.88;
+  color: var(--color-on-navy);
 }
 
-.sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+.site-nav .site-logo {
+  opacity: 1;
 }
-
-.top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
+.site-nav a:hover,
+.site-nav a:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
 }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-    }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
-    }
+.site-nav a:focus-visible {
+  outline: 2px solid var(--color-on-navy);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
-
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
-        width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
-
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
-    }
-}
-
 #blazor-error-ui {
-    color-scheme: light only;
-    background: lightyellow;
-    bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-    box-sizing: border-box;
-    display: none;
-    left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
+  color-scheme: light only;
+  background: var(--color-medium-bg);
+  bottom: 0;
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  display: none;
+  left: 0;
+  padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
+#blazor-error-ui .dismiss {
+  cursor: pointer;
+  position: absolute;
+  right: 0.75rem;
+  top: 0.5rem;
+}
+.site-logo img {
+  height: 2.5rem;
+  display: block;
+}
+@media (max-width: 50rem) {
+  .site-nav {
+    grid-template-columns: auto auto;
+    justify-content: center;
+    column-gap:2rem ;
+  }
+  .site-logo {
+    order: -1;
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+  .site-logo {
+    order: -1;
+  }
+
+  .site-nav ul,
+  .site-nav ul:first-child,
+  .site-nav ul:last-child {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 2rem;
+  }
+}
+.site-footer {
+  background: var(--color-navy);
+  color: var(--color-on-navy-muted);
+  margin-top: 3rem;
+  padding: 2rem 1.25rem;
+  font-size: 0.9rem;
+}
+.site-footer-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.5rem;
+}
+.site-footer p {
+  margin: 0;
+}
+.site-footer strong {
+  color: var(--color-on-navy);
+}
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 0.5rem;
+}
+.site-footer a {
+  color: var(--color-on-navy);
+  text-underline-offset: 0.2em;
+}
+.site-footer a:focus-visible {
+  outline: 2px solid var(--color-on-navy);
+  outline-offset: 3px;
+  border-radius: 2px;
+}

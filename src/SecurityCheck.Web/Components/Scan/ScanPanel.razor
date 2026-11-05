@@ -1,0 +1,114 @@
+@using SecurityCheck.Core.Scanning;
+@using SecurityCheck.Core.Validation;
+@implements IDisposable
+@inject SecurityScanner Scanner
+@inject ILogger<ScanPanel> Logger
+
+<form @onsubmit="ScanAsync" class="search-form">
+    <label for="domain">Vilken webbplats vill du kontrollera?</label>
+    <div class="search-row">
+        <input id="domain" @bind="domain" placeholder="t.ex. minfrisor.se" autocapitalize="off" spellcheck="false"
+               inputmode="url" maxlength="300" class="search-input" aria-invalid="@(IsRejected ? "true" : null)"
+               aria-describedby="@(IsRejected ? "domain-error" : null)" />
+        <button type="submit" class="search-btn" disabled="@isScanning">
+            @if (isScanning)
+            {
+                <span class="spinner" aria-hidden="true"></span>
+                <text>Besiktar ...</text>
+            }
+            else
+            {
+                <text>Besikta</text>
+            }
+            
+        </button>
+        
+    </div>
+    <p class="search-hint">Gratis · Tar några sekunder · Vi ändrar ingenting på din webbplats
+    </p>
+
+    @* Nekad domän: meddelandet hör till fältet, ingen resultatsektion.*@
+
+    @if (report is { IsDomainAccepted: false })
+    {
+        <p role="alert" class="search-error" id="domain-error">@report.RejectionMessage</p>
+    }
+</form>
+@if (isScanning)
+{
+    <section>
+        <p role="status" class="scanning">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Besiktar <span class="domain">@scanningDomain</span> ...</span>
+        </p>
+    </section>
+}
+else if (hasError)
+{
+    <section>
+        <p>Något gick fel när vi skulle besikta domänen. Försök igen om en stund.</p>
+        <button type="button" @onclick="ScanAsync">Försök igen</button>
+    </section>
+}
+else if (report is { IsDomainAccepted: true })
+{
+    <ReportView Report="report" />
+}
+else
+{
+    <CheckOverview />
+}
+
+@code {
+    private string domain = "";
+    private string scanningDomain = "";
+    private bool isScanning;
+    private bool hasError;
+    private bool IsRejected => report is { IsDomainAccepted: false };
+    private ScanReport? report;
+    private CancellationTokenSource? cts;
+
+    private async Task ScanAsync()
+    {
+        // Skydd mot att Enter och knappen startar två skanningar samtidigt
+        if (isScanning)
+        {
+            return;
+        }
+
+
+        // Ta bort det gamla resultat direkt, så att det inte blandas ihop med den nya domänen.
+        report = null;
+        hasError = false;
+        isScanning = true;
+        scanningDomain = DomainNormalizer.Normalize(domain);
+
+        cts?.Dispose();
+        cts = new CancellationTokenSource();
+
+        try
+        {
+            report = await Scanner.ScanAsync(domain, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Användaren lämnar sidan och Dispose avbröt skanningen. Det finns inget att visa.
+        }
+        catch (Exception ex)
+        {
+            // T.ex. att DNS-servern inte svarar. Ett ohanterat undantag skulle döda hela kretsen,
+            // så vi loggar detaljerna och visar ett användarvänligt meddelande.
+            Logger.LogError(ex, "Skanningen av {Domain} misslyckas", scanningDomain);
+            hasError = true;
+        }
+        finally
+        {
+            isScanning = false;
+        }
+    }
+    public void Dispose()
+    {
+        cts?.Cancel();
+        cts?.Dispose();
+    }
+}

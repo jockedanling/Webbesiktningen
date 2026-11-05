@@ -1,0 +1,108 @@
+@using SecurityCheck.Core.Contracts
+@using SecurityCheck.Core.Scanning
+
+<section>
+    <h2>Resultat för @Report.Domain</h2>
+
+    <p class="report-summary">
+        <strong>@IssueSummary</strong>
+        <span>@CompletedCount av @Report.Results.Count kontroller genomförda</span>
+    </p>
+
+    @foreach (var result in Report.Results)
+    {
+        <article class="check-row">
+            <div class="check-row-header">
+                <h3>@result.CheckName</h3>
+                <span class="check-status check-status--@StatusCss(result)">@StatusText(result)</span>
+            </div>
+            @if (result.Status == CheckStatus.Failed)
+            {
+                <p>
+                    Vi kunde inte genomföra den här kontrollen just nu (@Describe(result.FailureReason)).
+                    Det betyder inte att något är fel.
+                </p>
+            }
+            else
+            {
+                foreach (var finding in result.Findings.OrderByDescending(f => f.Severity))
+                {
+                    <div class="finding finding--@Css(finding.Severity)">
+                        <h4>@Label(finding.Severity): @finding.Title</h4>
+                        <p>@finding.Explanation</p>
+                        <p><strong>Åtgärd:</strong> @finding.Recommendation</p>
+                    </div>
+                }
+            }
+        </article>
+    }
+</section>
+
+@code {
+    // ScanPanel skickar bara in en godkänd rapport, så den är aldrig null här.
+    [Parameter, EditorRequired]
+    public ScanReport Report { get; set; } = default!;
+
+    // Hur många kontroller som kunde genomföras.
+    // Utan den siffran kan en webbplats få ett bra resultat bara för att den svarade dåligt.
+
+    private int CompletedCount => Report.Results.Count(r => r.Status == CheckStatus.Completed);
+
+    // Info betyder att allt är bra, så den räknar inte det som en anmärkning
+    private int IssueCount =>
+        Report.Results
+            .SelectMany(r => r.Findings)
+            .Count(f => f.Severity != Severity.Info);
+
+    private string IssueSummary => IssueCount switch
+    {
+        0 => "Inga anmärkningar",
+        1 => "1 anmärkning att åtgärda",
+        _ => $"{IssueCount} anmärkningar att åtgärda",
+    };
+
+    // Tekniska detaljer visas aldrig för användaren, bara en vänlig förklaring
+    private static string Describe(FailureReason? reason) => reason switch
+    {
+        FailureReason.Timeout => "det tog för lång tid",
+        FailureReason.Unreachable => "webbplatsen svarade inte",
+        FailureReason.InvalidInput => "domänen gick inte att kontrollera",
+        _ => "ett oväntat fel uppstod",
+    };
+
+    private static string Label(Severity severity) => severity switch
+    {
+        Severity.High => "Allvarligt",
+        Severity.Medium => "Medel",
+        Severity.Low => "Låg",
+        _ => "Info",
+    };
+
+    private static Severity Worst(CheckResult result) =>
+        result.Findings
+            .Select(f => f.Severity)
+            .DefaultIfEmpty(Severity.Info)
+            .Max();
+
+    private static string StatusText(CheckResult result)
+    {
+        if (result.Status == CheckStatus.Failed)
+        {
+            return "Kunde inte kontrolleras";
+        }
+
+        var worst = Worst(result);
+        return worst == Severity.Info ? "Inga anmärkningar" : Label(worst);
+    }
+
+    private static string Css(Severity severity) => severity switch
+    {
+        Severity.High => "high",
+        Severity.Medium => "medium",
+        Severity.Low => "low",
+        _ => "ok",
+    };
+
+    private static string StatusCss(CheckResult result) =>
+    result.Status == CheckStatus.Failed ? "neutral" : Css(Worst(result));
+}
