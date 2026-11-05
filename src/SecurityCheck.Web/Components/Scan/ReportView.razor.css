@@ -1,0 +1,33 @@
+.report-summary {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0 0 1.5rem;
+}
+.report-summary strong {
+    font-size: 1.25rem;
+}
+.report-summary span {
+    color: var(--color-muted);
+}
+.check.row {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+}
+.check-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+}
+.check-row-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+.check-status {
+    font-weight: 600;
+    color: var(--color-muted);
+}

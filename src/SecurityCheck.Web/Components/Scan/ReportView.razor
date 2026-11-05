@@ -4,11 +4,18 @@
 <section>
     <h2>Resultat för @Report.Domain</h2>
 
+    <p class="report-summary">
+        <strong>@IssueSummary</strong>
+        <span>@CompletedCount av @Report.Results.Count kontroller genomförda</span>
+    </p>
+
     @foreach (var result in Report.Results)
     {
-        <article>
+        <article class="check-row">
+            <div class="check-row-header">
             <h3>@result.CheckName</h3>
-
+            <span class="check-status">@StatusText(result)</span>
+            </div>
             @if (result.Status == CheckStatus.Failed)
             {
                 <p>
@@ -34,6 +41,24 @@
     [Parameter, EditorRequired]
     public ScanReport Report { get; set; } = default!;
 
+    // Hur många kontroller som kunde genomföras.
+    //Utan den siffran kan en webbplats få ett bra resultat bara för att den svarade dåligt.
+
+    private int CompletedCount => Report.Results.Count(r => r.Status == CheckStatus.Completed);
+
+    // Info betyder att allt är bra, så den räknar inte det som en anmärkning
+    private int IssueCount =>
+        Report.Results
+            .SelectMany(r => r.Findings)
+            .Count(f => f.Severity != Severity.Info);
+
+    private string IssueSummary => IssueCount switch
+    {
+        0 => "Inga anmärkningar",
+        1 => "1 anmärkning att åtgärda",
+        _ => $"{IssueCount} anmärkningar att åtgärda",
+    };
+
     // Tekniska detaljer visas aldrig för användaren, bara en vänlig förklaring
     private static string Describe(FailureReason? reason) => reason switch
     {
@@ -47,7 +72,24 @@
     {
         Severity.High => "Allvarligt",
         Severity.Medium => "Medel",
-        Severity.Low => "låg",
+        Severity.Low => "Låg",
         _ => "Info",
     };
+
+    private static Severity Worst(CheckResult result) =>
+        result.Findings
+            .Select(f => f.Severity)
+            .DefaultIfEmpty(Severity.Info)
+            .Max();
+
+    private static string StatusText(CheckResult result)
+    {
+        if (result.Status == CheckStatus.Failed)
+        {
+            return "Kunde inte kontrolleras";
+        }
+
+        var worst = Worst(result);
+        return worst == Severity.Info ? "Inga anmärkningar" : Label(worst);
+    }
 }
