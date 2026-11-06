@@ -1,8 +1,8 @@
 namespace SecurityCheck.Core.Validation;
 
 /// <summary>
-/// Resultatet av en domänvalidering (D-021). Skapas bara via fabriksmetoderna,
-/// så att en nekad domän alltid har ett meddelande (samma mönster som CheckResult, D-018).
+/// Resultatet av en domänvalidering. Skapas bara via fabriksmetoderna,
+/// så att en nekad domän alltid har ett meddelande (samma mönster som CheckResult).
 /// </summary>
 public sealed record DomainValidationResult
 {
@@ -19,10 +19,14 @@ public sealed record DomainValidationResult
         Message = message;
     }
 
-    // Godkänd domän
+    /// <summary>
+    /// Godkänd domän.
+    /// </summary>
     public static DomainValidationResult Valid() => new(true, null);
 
-    // Nekad domän. Användaren ska alltid få en förklaring (D-021), därför krävs ett meddelande
+    /// <summary>
+    /// Nekad domän. Användaren ska alltid få en förklaring, därför krävs ett meddelande.
+    /// </summary>
     public static DomainValidationResult Invalid(string message)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);

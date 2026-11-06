@@ -100,7 +100,7 @@ public class SecurityScannerTests
     public async Task ScanAsync_CallerCancels_ThrowsOperationCanceledException()
     {
         // Arrange
-        // Kontrollen beter sig som en dekorerad kontroll enligt D-025: kastar vidare när ct är avbruten
+        // Kontrollen beter sig som en dekorerad kontroll: kastar vidare när ct är avbruten
         var check = Substitute.For<ISecurityCheck>();
         check.RunAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(call => Task.FromCanceled<CheckResult>(call.Arg<CancellationToken>()));

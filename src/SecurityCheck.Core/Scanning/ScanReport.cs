@@ -4,7 +4,7 @@ namespace SecurityCheck.Core.Scanning;
 
 /// <summary>
 /// Resultatet av en hel skanning. Skapas bara via fabriksmetoderna,
-/// så att en nekad domän aldrig har resultat och en godkänd aldrig har ett nekandemeddelande (samma mönster som CheckResult, D-018).
+/// så att en nekad domän aldrig har resultat och en godkänd aldrig har ett nekandemeddelande (samma mönster som CheckResult).
 /// </summary>
 public sealed record ScanReport
 {
@@ -12,7 +12,7 @@ public sealed record ScanReport
     public bool IsDomainAccepted { get; }
 
     /// <summary>
-    /// Meddelande från DomainValidator som visas för användaren när domänen nekas (D-021). Null om domänen godkändes.
+    /// Meddelande från DomainValidator som visas för användaren när domänen nekas. Null om domänen godkändes.
     /// </summary>
     public string? RejectionMessage { get; }
 
@@ -27,11 +27,15 @@ public sealed record ScanReport
         Results = results;
     }
 
-    // Domänen nekades, inga kontroller kördes
+    /// <summary>
+    /// Domänen nekades, inga kontroller kördes.
+    /// </summary>
     public static ScanReport Rejected(string domain, string message) =>
         new(domain, false, message, []);
 
-    // Domänen godkändes och alla kontroller kördes
+    /// <summary>
+    /// Domänen godkändes och alla kontroller kördes.
+    /// </summary>
     public static ScanReport Completed(string domain, IReadOnlyList<CheckResult> results) =>
         new(domain, true, null, results);
 }

@@ -12,6 +12,7 @@ public sealed class CertificateFetcher : ICertificateFetcher
 {
     private const int HttpsPort = 443;
 
+    /// <inheritdoc />
     public async Task<CertificateInfo> FetchAsync(string host, CancellationToken ct)
     {
         // Båda disposas när metoden är klar, även om ett undantag kastas

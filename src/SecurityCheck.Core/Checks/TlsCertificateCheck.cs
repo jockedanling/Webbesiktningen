@@ -6,7 +6,7 @@ using SecurityCheck.Core.Contracts;
 namespace SecurityCheck.Core.Checks;
 
 /// <summary>
-/// Kontrollerar domänens TLS-certifikat: att det är giltigt, betrorr, gäller rätt namn och hur länge det gäller.
+/// Kontrollerar domänens TLS-certifikat: att det är giltigt, betrott, gäller rätt namn och hur länge det gäller.
 /// En av strategierna i Strategy-mönstret.
 /// </summary>
 public sealed class TlsCertificateCheck : ISecurityCheck
@@ -22,8 +22,10 @@ public sealed class TlsCertificateCheck : ISecurityCheck
         _time = time;
     }
 
+    /// <inheritdoc />
     public string Name => "TLS-certifikat";
 
+    /// <inheritdoc />
     public async Task<CheckResult> RunAsync(string domain, CancellationToken ct)
     {
         CertificateInfo certificate;
@@ -33,12 +35,12 @@ public sealed class TlsCertificateCheck : ISecurityCheck
         }
         catch (AuthenticationException)
         {
-            // Sajten svarar men kan inte upprätta en säker anslutning: ett fynd (D-024)
+            // Sajten svarar men kan inte upprätta en säker anslutning: ett fynd
             return CheckResult.Completed(Name, [HandshakeFailed()]);
         }
         catch (Exception ex) when (ex is SocketException or IOException)
         {
-            // Sajten svarar inte: säger inget om certifikatet (D-024)
+            // Sajten svarar inte: säger inget om certifikatet
             return CheckResult.Failed(Name, FailureReason.Unreachable);
         }
 
@@ -116,7 +118,6 @@ public sealed class TlsCertificateCheck : ISecurityCheck
         Severity.High,
         $"Certifikatet är utfärdat för en annan adress än {domain}, så webbläsare varnar besökarna.",
         $"Be ditt webbhotell installera ett certifikat som gäller {domain}. Gäller det bara www-adressen behöver det även täcka adressen utan www.");
-
 
     private static Finding NotTrusted() => new(
         "Certifikatet är inte betrott",

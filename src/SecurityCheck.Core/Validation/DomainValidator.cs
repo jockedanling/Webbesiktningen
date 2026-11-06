@@ -18,6 +18,7 @@ public sealed class DomainValidator : IDomainValidator
         _dns = dns;
     }
 
+    /// <inheritdoc />
     public async Task<DomainValidationResult> ValidateAsync(string domain, CancellationToken ct)
     {
         var formatResult = ValidateFormat(domain);
@@ -78,7 +79,7 @@ public sealed class DomainValidator : IDomainValidator
         // Okänd adresstyp: neka hellre än att släppa igenom
         return false;
     }
-    
+
     private static DomainValidationResult ValidateFormat(string? domain)
     {
         if (string.IsNullOrWhiteSpace(domain))
