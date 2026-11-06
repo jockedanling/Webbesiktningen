@@ -52,7 +52,7 @@ catch (OperationCanceledException) when (cts.IsCancellationRequested)
 }
 catch (SocketException)
 {
-    // DNS-servern svarade inte när domänen validerades (öppen fråga i DECISIONS.md)
+    // DNS-servern svarade inte när domänen validerades. Kan hanteras i scannern i framtiden.
     Console.WriteLine("Kunde inte slå upp domänen just nu. Försök igen om en stund.");
 }
 finally

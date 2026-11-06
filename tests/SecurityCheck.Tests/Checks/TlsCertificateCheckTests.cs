@@ -122,7 +122,7 @@ public class TlsCertificateCheckTests
         Assert.All(result.Findings, f => Assert.Equal(Severity.High, f.Severity));
     }
 
-    // Sajten svarar men kan inte erbjuda en säker anslutning: ett fynd, inte ett misslyckande (D-024)
+    // Sajten svarar men kan inte erbjuda en säker anslutning: ett fynd, inte ett misslyckande
     [Fact]
     public async Task RunAsync_HandshakeFails_ReturnsCompletedWithHighFinding()
     {
@@ -139,7 +139,7 @@ public class TlsCertificateCheckTests
         Assert.Equal(Severity.High, finding.Severity);
     }
 
-    // Sajten svarar inte: säger inget om certifikatet, därför Failed (D-024)
+    // Sajten svarar inte: säger inget om certifikatet, därför Failed
     [Theory]
     [InlineData(typeof(SocketException))]
     [InlineData(typeof(IOException))]

@@ -6,7 +6,7 @@ namespace SecurityCheck.Core.Scanning;
 /// <summary>
 /// Kör en samling säkerhetskontroller mot en domän. Context i Strategy-mönstret:
 /// scannern känner bara till ISecurityCheck, inte vilka kontroller eller decorators som finns.
-/// Validerar domänen först och kör sedan alla kontroller parallellt.
+/// Normaliserar och validerar domänen först och kör sedan alla kontroller parallellt.
 /// </summary>
 public sealed class SecurityScanner
 {
@@ -23,6 +23,13 @@ public sealed class SecurityScanner
         _validator = validator;
     }
 
+    /// <summary>
+    /// Besiktar en domän. Returnerar en nekad rapport om domänen inte får skannas,
+    /// annars en rapport med ett resultat per kontroll.
+    /// </summary>
+    /// <param name="domain">Det användaren skrev, t.ex. en domän, en hel adress eller en e-postadress.</param>
+    /// <param name="ct">Avbryter skanningen. Då kastas OperationCanceledException.</param>
+    /// <exception cref="System.Net.Sockets.SocketException">DNS-servern svarar inte när domänen valideras.</exception>
     public async Task<ScanReport> ScanAsync(string domain, CancellationToken ct = default)
     {
         var normalized = DomainNormalizer.Normalize(domain);

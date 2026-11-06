@@ -1,7 +1,7 @@
 namespace SecurityCheck.Core.Validation;
 
 /// <summary>
-/// Kontrollerar att en domän är säker att skanna (SSRF-skydd) innan några kontroller körs (D-015).
+/// Kontrollerar att en domän är säker att skanna (SSRF-skydd) innan några kontroller körs.
 /// </summary>
 public interface IDomainValidator
 {

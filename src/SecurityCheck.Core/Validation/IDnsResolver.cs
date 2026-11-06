@@ -7,5 +7,9 @@ namespace SecurityCheck.Core.Validation;
 /// </summary>
 public interface IDnsResolver
 {
+    /// <summary>
+    /// Returnerar domänens IP-adresser eller en tom lista om domänen inte finns.
+    /// </summary>
+    /// <exception cref="System.Net.Sockets.SocketException">DNS-servern svarar inte.</exception>
     Task<IPAddress[]> ResolveAsync(string host, CancellationToken ct);
 }

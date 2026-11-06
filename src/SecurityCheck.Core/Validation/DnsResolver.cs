@@ -9,6 +9,7 @@ namespace SecurityCheck.Core.Validation;
 /// </summary>
 public sealed class DnsResolver : IDnsResolver
 {
+    /// <inheritdoc />
     public async Task<IPAddress[]> ResolveAsync(string host, CancellationToken ct)
     {
         try
