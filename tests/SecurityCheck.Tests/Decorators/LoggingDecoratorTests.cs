@@ -144,7 +144,7 @@ public class LoggingDecoratorTests
         // Act
         await decorator.RunAsync(Domain, CancellationToken.None);
         // Assert
-        foreach(var record in _logger.Collector.GetSnapshot())
+        foreach (var record in _logger.Collector.GetSnapshot())
         {
             Assert.DoesNotContain(finding.Title, record.Message);
             Assert.DoesNotContain(finding.Explanation, record.Message);

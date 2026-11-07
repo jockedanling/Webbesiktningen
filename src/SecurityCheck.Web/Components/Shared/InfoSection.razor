@@ -6,14 +6,14 @@
 </details>
 
 @code {
-    // Används som mål för länkarna i menyn, tex."processen" för href="#processen"
+    // Används som mål för länkarna i menyn, t.ex. "processen" för href="#processen"
     [Parameter, EditorRequired]
-    public string Id {get; set;} = "";
+    public string Id { get; set; } = "";
 
     [Parameter, EditorRequired]
-    public string Title {get; set;} = "";
+    public string Title { get; set; } = "";
 
     // Det som står emellan <InfoSection> och </InfoSection>
     [Parameter, EditorRequired]
-    public RenderFragment ChildContent {get; set;} = default!;
+    public RenderFragment ChildContent { get; set; } = default!;
 }

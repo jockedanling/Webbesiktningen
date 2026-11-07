@@ -3,7 +3,6 @@ namespace SecurityCheck.Core.Contracts;
 /// <summary>
 /// Om besiktningen misslyckades, visas bara vid Status = Failed
 /// </summary>
-
 public enum FailureReason
 {
     /// <summary>
@@ -11,7 +10,7 @@ public enum FailureReason
     /// </summary>
     Timeout,
     /// <summary>
-    /// Sajten eller DNS inte svarade
+    /// Sajten eller DNS svarade inte
     /// </summary>
     Unreachable,
     /// <summary>

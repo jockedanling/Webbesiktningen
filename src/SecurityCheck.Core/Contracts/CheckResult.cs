@@ -1,5 +1,10 @@
 namespace SecurityCheck.Core.Contracts;
 
+/// <summary>
+/// Resultatet av en kontroll för en domän.
+/// Skapas bara via <see cref="Completed"/> eller <see cref="Failed"/>, så att Status,
+/// Findings och FailureReason alltid hänger ihop. 
+/// </summary>
 public sealed record CheckResult
 {
     public string CheckName { get; }
@@ -7,7 +12,7 @@ public sealed record CheckResult
     public IReadOnlyList<Finding> Findings { get; }
     public FailureReason? FailureReason { get; }
 
-    // Privat konstruktor
+    
     private CheckResult(string checkName, CheckStatus status,
     IReadOnlyList<Finding> findings, FailureReason? failureReason)
     {
@@ -16,11 +21,11 @@ public sealed record CheckResult
         Findings = findings;
         FailureReason = failureReason;
     }
-    // Lyckat resultat
+    // Lyckat resultat. En tom lista betyder att inget hittades.
     public static CheckResult Completed(string checkName, IReadOnlyList<Finding> findings) =>
     new(checkName, CheckStatus.Completed, findings, null);
 
-    // Misslyckat resultat
+    // Kontrollen kunde inte genomföras. Säger ingenting om domänen är säker.
     public static CheckResult Failed(string checkName, FailureReason reason) =>
     new(checkName, CheckStatus.Failed, [], reason);
 }

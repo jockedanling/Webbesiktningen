@@ -18,8 +18,6 @@ En applikation där en småföretagare anger sin domän och får en begriplig s�
 
 **Vår skillnad mot befintliga verktyg** (Mozilla Observatory, SSL Labs, securityheaders.com): de är byggda för tekniker. Vi kombinerar flera kontroller i en rapport och förklarar varje fynd och åtgärd så att en icke-tekniker förstår.
 
-**Sammanhang:** grupprojekt i kursen APR400 – Avancerad programmering med C#, Högskolan Väst, HT2026. Deadline **2026-11-08 23:59**. Betyg: godkänd/underkänd. Projektet ska också fungera som portföljprojekt.
-
 ---
 
 ## 2. Team och ansvar
@@ -58,7 +56,7 @@ Kontraktet i `Contracts/` görs tillsammans. Därefter arbetar var och en på eg
 | 5 | `HttpsRedirectCheck` (mål) | `Checks/` |
 | 6 | Rate limiting i koden som startar en skanning (se avsnitt 8) | `SecurityCheck.Web` |
 
-**Tillsammans:** kontraktet, att koppla ihop decorators runt kontrollerna, Blazor-gränssnittet (vecka 3–4), driftsättning till Azure, README och den skriftliga rapporten.
+**Tillsammans:** kontraktet, att koppla ihop decorators runt kontrollerna, Blazor-gränssnittet (vecka 3–4), README och den skriftliga rapporten.
 
 Ändra inte i den andras filer. Behövs en ändring där, ta det med ägaren eller föreslå den i en PR som ägaren granskar.
 
@@ -94,7 +92,7 @@ Alla kontroller tar en domän som indata, i enlighet med kontraktet.
 - **Gränssnitt:** tunn konsolapp först, sedan Blazor
 - **Versionshantering:** Git + GitHub, pull requests till `main`
 - **CI:** GitHub Actions (bygg med `-warnaserror` + tester vid varje PR)
-- **Hosting:** Azure App Service via högskolekonton. Koden ligger på GitHub och driftsätts automatiskt med GitHub Actions vid merge till `main`.
+- **Hosting:** Koden ligger på GitHub och driftsätts automatiskt med GitHub Actions vid merge till `main`.
 
 ---
 
@@ -205,7 +203,6 @@ return CheckResult.Failed(Name, FailureReason.Timeout);
   - [ ] Resurser disposas och event handlers avregistreras
 - **Kommunikation:** sms löpande, möten på Discord.
 - **Beslut:** varje tekniskt beslut loggas i `DECISIONS.md` med vad, varför och var. Underlag till rapporten.
-- **AI-chattar:** sparas löpande som underlag till filmerna.
 
 ---
 
@@ -246,7 +243,7 @@ Domänvalideringen ligger i en separat `DomainValidator` som `SecurityScanner` a
 | Unit tests | xUnit + NSubstitute; nätverk mockas, decorators testas mot fejkade kontroller |
 | Ett design pattern per person | Strategy (Erik), Decorator (Joakim) |
 | Mindful memory usage | Återanvänd `HttpClient`, `TcpClient`/`SslStream` disposas, event handlers avregistreras |
-| Hög kodkvalitet | Logik separerad från UI, ett ansvar per klass, kodgranskning, Nakov kap. 21 |
+| Hög kodkvalitet | Logik separerad från UI, ett ansvar per klass, kodgranskning |
 | README | Bygga, köra, testa, samt etisk avgränsning |
 
 Skriftlig rapport: 1500–2000 ord, APA7. Ska täcka projektbeskrivning, avancerade koncept, testmetod, minnesanvändning, design patterns samt förbättringar och framtida arbete.
@@ -272,10 +269,9 @@ Skriftlig rapport: 1500–2000 ord, APA7. Ska täcka projektbeskrivning, avancer
 - [x] Grupp anmäld till läraren
 - [x] Roller fördelade
 - [x] Repo och solution-struktur uppsatt
-- [ ] Kontraktet mergat till `main`
+- [x] Kontraktet mergat till `main`
 - [x] GitHub Actions uppsatt (bygg + test)
-- [ ] Driftsättning till Azure App Service
-- [ ] Tunn konsolapp som kör en kontroll från början till slut
+- [x] Tunn konsolapp som kör en kontroll från början till slut
 
 ---
 
@@ -283,6 +279,8 @@ Skriftlig rapport: 1500–2000 ord, APA7. Ska täcka projektbeskrivning, avancer
 
 - Följ arkitekturen och kontraktet ovan. Föreslå inte ändringar i `Contracts/` utan att flagga det tydligt.
 - Koden skrivs på engelska (namn) men kommentarer kan vara på svenska. Förklaringar till oss får vara på svenska.
+- Skriv aldrig färdig kod först, utan erbjud hjälp, tips och ledtrådar om hur lösningen kan kodas.
 - Förklara *varför* ett förslag passar, och nämn nackdelar eller alternativ. Vi ska kunna resonera kritiskt kring förslagen i våra filmer.
 - Respektera säkerhetsreglerna i avsnitt 8.
 - Håll förslag små och i linje med Definition of Done (inklusive tester).
+

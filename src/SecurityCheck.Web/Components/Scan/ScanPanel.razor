@@ -24,8 +24,7 @@
         </button>
         
     </div>
-    <p class="search-hint">Gratis · Tar några sekunder · Vi ändrar ingenting på din webbplats
-    </p>
+    <p class="search-hint">Gratis · Tar några sekunder · Vi ändrar ingenting på din webbplats</p>
 
     @* Nekad domän: meddelandet hör till fältet, ingen resultatsektion.*@
 
@@ -106,6 +105,8 @@ else
             isScanning = false;
         }
     }
+
+    // Dispose avbryter skanningen när användaren lämnar sidan.
     public void Dispose()
     {
         cts?.Cancel();
