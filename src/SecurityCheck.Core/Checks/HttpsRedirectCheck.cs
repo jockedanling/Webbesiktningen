@@ -40,6 +40,7 @@ public sealed class HttpsRedirectCheck : ISecurityCheck
             return NoRedirect();
         }
 
+        // En relativ Location stannar kvar på http och räknas därför inte som HTTPS.
         if (response.Location.IsAbsoluteUri && response.Location.Scheme == Uri.UriSchemeHttps)
         {
             return RedirectsToHttps();
@@ -48,6 +49,7 @@ public sealed class HttpsRedirectCheck : ISecurityCheck
         return RedirectsElsewhere();
     }
 
+    // Dessa statuskoder är omdirigeringar. 304 räknas inte, eftersom det inte är en omdirigering.
     private static bool IsRedirect(int statusCode) => statusCode is 301 or 302 or 303 or 307 or 308;
 
     private static Finding NoRedirect() => new(
@@ -69,5 +71,4 @@ public sealed class HttpsRedirectCheck : ISecurityCheck
         "Besökare som skriver adressen utan https:// skickas automatiskt till den säkra versionen av webbplatsen.",
         "Ingen åtgärd behövs."
     );
-
 }

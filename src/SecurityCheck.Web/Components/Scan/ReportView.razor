@@ -78,6 +78,7 @@
         _ => "Info",
     };
 
+    // DefaultIfEmpty behövs eftersom Max() kastar ett undantag på en tom lista.
     private static Severity Worst(CheckResult result) =>
         result.Findings
             .Select(f => f.Severity)
@@ -95,6 +96,7 @@
         return worst == Severity.Info ? "Inga anmärkningar" : Label(worst);
     }
 
+    // Css och StatusCss: Strängarna måste matcha modifierklasserna i ReportView.razor.css
     private static string Css(Severity severity) => severity switch
     {
         Severity.High => "high",

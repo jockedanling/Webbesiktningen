@@ -1,7 +1,7 @@
 .search-form {
-    width: 100%;
-    position: relative;
-    z-index: 1;
+  width: 100%;
+  position: relative;
+  z-index: 1;
   max-width: 38rem;
   margin: -2.75rem auto 0;
   background: var(--color-surface);

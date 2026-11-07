@@ -1,6 +1,7 @@
 using DnsClient;
 
 namespace SecurityCheck.Core.Checks;
+
 /// <summary>
 /// Slår upp TXT-poster med DnsClient. Den enda klassen i e-postkontrollen som pratar med nätverket.
 /// </summary>
@@ -21,11 +22,11 @@ public sealed class TxtRecordResolver : ITxtRecordResolver
         }
         catch (DnsResponseException ex)
         {
-            ct.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested(); // Anroparens avbrott ska synas som ett avbrott och inte som IOException, som annars blir Unreachable.
             throw new IOException($"DNS-uppslaget för {name} misslyckades.", ex);
         }
 
-        if (response.Header.ResponseCode == DnsHeaderResponseCode.NotExistentDomain)
+        if (response.Header.ResponseCode == DnsHeaderResponseCode.NotExistentDomain) // En domän som inte finns är inget fel, den har inga poster.
         {
             return [];
         }
@@ -36,7 +37,7 @@ public sealed class TxtRecordResolver : ITxtRecordResolver
         }
 
         return response.Answers.TxtRecords()
-            .Select(record => string.Concat(record.Text))
+            .Select(record => string.Concat(record.Text)) // Långa TXT-poster delas upp i bitar på högst 255 tecken, och därför slås bitarna ihop.
             .ToList();
     }
 }

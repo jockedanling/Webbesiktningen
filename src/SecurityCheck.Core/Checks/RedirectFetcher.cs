@@ -13,7 +13,7 @@ public sealed class RedirectFetcher : IRedirectFetcher
         _client = new HttpClient(new SocketsHttpHandler
         {
             AllowAutoRedirect = false,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2), // en långlivad HttpClient ska följa DNS-ändringar.
         });
         _client.DefaultRequestHeaders.UserAgent.ParseAdd("Webbesiktningen/1.0");
     }

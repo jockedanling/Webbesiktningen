@@ -1,7 +1,7 @@
 namespace SecurityCheck.Core.Checks;
 
 /// <summary>
-/// Slår upp TXT-poster i DNS. Ett eget interface så att EmailProtectionCheck kan testas utan nätverk
+/// Slår upp TXT-poster i DNS. Ett eget interface så att EmailProtectionCheck kan testas utan nätverk.
 /// </summary>
 public interface ITxtRecordResolver
 {

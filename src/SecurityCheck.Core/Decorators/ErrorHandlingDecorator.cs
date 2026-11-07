@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SecurityCheck.Core.Contracts;
 
 namespace SecurityCheck.Core.Decorators;
+
 /// <summary>
 /// Fångar oväntade undantag, loggar dem och returnerar Failed(Unexpected). Avbrott från anroparen kastas vidare.
 /// Använder Decorator som Design Pattern för att kunna lägga till beteende på det gemensamma interfacet ISecurityCheck.
@@ -27,6 +28,9 @@ public sealed partial class ErrorHandlingDecorator : ISecurityCheck
         {
             return await _inner.RunAsync(domain, ct);
         }
+
+        // Bara anroparens avbrott kastas vidare.
+        //  Ett avbrott som kontrollen själv orsakar, t.ex. en HttpClient-timeout blir Unexpected.
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             throw;
@@ -36,11 +40,8 @@ public sealed partial class ErrorHandlingDecorator : ISecurityCheck
             LogUnexpectedException(_logger, ex, Name, domain);
             return CheckResult.Failed(Name, FailureReason.Unexpected);
         }
-
     }
-
-
     [LoggerMessage(Level = LogLevel.Error,
-    Message = "Kontrollen {CheckName} kastade ett oväntat undantag för {Domain}")]
+        Message = "Kontrollen {CheckName} kastade ett oväntat undantag för {Domain}")]
     private static partial void LogUnexpectedException(ILogger logger, Exception exception, string checkName, string domain);
 }

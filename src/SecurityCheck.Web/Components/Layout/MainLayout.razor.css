@@ -30,7 +30,6 @@
   justify-content: flex-start;
 } /* höger grupp mot loggan */
 
-
 .site-nav a {
   text-decoration: none;
   font-size: 0.95rem;
@@ -80,15 +79,12 @@
   .site-nav {
     grid-template-columns: auto auto;
     justify-content: center;
-    column-gap:2rem ;
+    column-gap: 2rem;
   }
   .site-logo {
     order: -1;
     grid-column: 1 / -1;
     justify-self: center;
-  }
-  .site-logo {
-    order: -1;
   }
 
   .site-nav ul,

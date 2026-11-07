@@ -32,6 +32,7 @@ public sealed class TimeoutDecorator : ISecurityCheck
         {
             return await _inner.RunAsync(domain, timeoutCts.Token).WaitAsync(timeoutCts.Token);
         }
+        // Resultatet blir bara Timeout när vår timer gick ut och anroparen inte avbröt.
         catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !ct.IsCancellationRequested)
         {
             return CheckResult.Failed(Name, FailureReason.Timeout);

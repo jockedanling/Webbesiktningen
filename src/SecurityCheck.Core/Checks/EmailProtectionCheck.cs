@@ -21,8 +21,8 @@ public sealed class EmailProtectionCheck : ISecurityCheck
     {
         // E-post skickas aldrig från "www-namnet", så SPF och DMARC slår upp på grunddomänen.
         var mailDomain = domain.StartsWith("www.", StringComparison.OrdinalIgnoreCase)
-        ? domain[4..]
-        : domain;
+            ? domain[4..]
+            : domain;
 
         IReadOnlyList<string> domainRecords;
         IReadOnlyList<string> dmarcRecords;
@@ -53,11 +53,13 @@ public sealed class EmailProtectionCheck : ISecurityCheck
         {
             return SpfMissing();
         }
+        // SPF-standarden ogiltigförklarar alla poster när det finns flera.
         if (spfRecords.Count > 1)
         {
             return MultipleSpfRecords();
         }
 
+        // all eller +all sist i SPF-posten betyder att alla servrar får skicka. -all , ~all och ?all räknas som OK.
         var lastTerm = spfRecords[0].Split(' ', StringSplitOptions.RemoveEmptyEntries)[^1];
         if (lastTerm.Equals("all", StringComparison.OrdinalIgnoreCase)
             || lastTerm.Equals("+all", StringComparison.OrdinalIgnoreCase))
