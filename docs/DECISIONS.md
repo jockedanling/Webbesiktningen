@@ -268,6 +268,13 @@ Spinnern har `role="status"` och animationen stängs av med `prefers-reduced-mot
 **Varför:** Målgruppen (D-001) vill först veta om de behöver göra något och läser detaljerna sedan. Därför kommer sammanfattningen först. Raden om att besiktningen är gratis och inte ändrar något stod tidigare bara i Processen och FAQ. Den ska synas innan användaren trycker på knappen. De tre rutorna visar vad som kommer att hända och ger resultatet samma uppdelning. Kopiering och utskrift behövs eftersom FAQ säger att förslagen ska kunna skickas vidare till webbyrån. Färgen får inte ensam visa nivån, eftersom den då inte når färgblinda. Utan flyttat fokus får en skärmläsare inte veta att rapporten har kommit. Sammanfattningen räknas ut i gränssnittet eftersom den bara är ett sätt att visa `ScanReport`, som då inte behöver ändras. Bortvalt: ett utlåtande i besiktningsstil som "Godkänd med anmärkningar", eftersom det kan läsas som en garanti, vilket FAQ säger att resultatet inte är. Bortvalt: att fälla ihop anmärkningarna, eftersom hopfällda `<details>` inte kommer med vid utskrift. Bortvalt: att lägga betyget i `ScanReport`.
 **Var:** `SecurityCheck.Web`: `Pages/Home.razor`, `Scan/ScanPanel.razor`, `Scan/CheckOverview.razor`, `Shared/InfoSection.razor`, `Layout/MainLayout.razor` och `wwwroot/app.css` (utskriftsstilen).
 
+## D 0-41: Driftsättning & rate limiting
+
+**Datum:** 2026-11-05 · **Beslutat av:** Joakim & Erik
+**Vad:** Vi kommer inte driftsätta i Azure.
+**Varför:** Brist på tid och ingen rate limiting implementerad som skydd.
+
+
 ---
 
 ## Öppna frågor

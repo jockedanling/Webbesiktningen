@@ -197,10 +197,10 @@ return CheckResult.Failed(Name, FailureReason.Timeout);
 - **Pull requests:** den andra personen granskar alltid. Små PR:er, en funktion i taget.
 - **Hämta `main` dagligen** till den egna branchen.
 - **Definition of Done:**
-  - [ ] Bygger utan varningar
-  - [ ] Har tester som går igenom
-  - [ ] Granskad av den andra
-  - [ ] Resurser disposas och event handlers avregistreras
+  - [x] Bygger utan varningar
+  - [x] Har tester som går igenom
+  - [x] Granskad av den andra
+  - [x] Resurser disposas och event handlers avregistreras
 - **Kommunikation:** sms löpande, möten på Discord.
 - **Beslut:** varje tekniskt beslut loggas i `DECISIONS.md` med vad, varför och var. Underlag till rapporten.
 
